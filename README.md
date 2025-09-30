@@ -1,105 +1,149 @@
-This is a modern dashboard application built with [Next.js](https://nextjs.org) and [Supabase](https://supabase.com) for authentication and backend services.
+# MyBohra Dashboard
 
-## Supabase Integration
+A modern, full-stack dashboard application built with Next.js, Supabase, and Tailwind CSS.
 
-This project is configured with Supabase for:
+## 🚀 Features
 
-- **Database**: PostgreSQL with real-time subscriptions
-- **Authentication**: User management and auth flows
-- **Storage**: File uploads and management
-- **API**: Auto-generated REST and GraphQL APIs
+- **Authentication**: Google OAuth and email/password login
+- **User Management**: Complete CRUD operations for users
+- **Modern UI**: Clean, responsive design inspired by Todoist/ClickUp
+- **Database Integration**: Supabase backend with automatic schema sync
+- **TypeScript**: Full type safety throughout the application
 
-### Setup Supabase
+## 🛠️ Tech Stack
 
-1. Follow the detailed setup guide in [`SUPABASE_SETUP.md`](./SUPABASE_SETUP.md)
-2. Create a `.env.local` file with your Supabase credentials
-3. Set up your database schema and Row Level Security policies
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Backend**: Supabase (PostgreSQL, Auth, Real-time)
+- **Styling**: Tailwind CSS
+- **Icons**: Tabler Icons
+- **State Management**: React Hooks
 
-### Usage
+## 📦 Installation
 
-```typescript
-import { supabase, SupabaseService, authService } from '@lib/api'
+1. **Clone the repository**
 
-// Database operations
-const projects = await SupabaseService.select('projects')
-const newProject = await SupabaseService.insert('projects', { title: 'New Project' })
-
-// Authentication
-await authService.signIn('user@example.com', 'password')
-const user = await authService.getCurrentUser()
-```
-
-## 🔐 Authentication System
-
-This project includes a complete authentication system with:
-
-- **Beautiful Login Page** (`/login`) with modern UI design
-- **Google OAuth Integration** with Supabase
-- **Email/Password Authentication**
-- **Protected Routes** with automatic redirects
-- **Authentication State Management** with React hooks
-
-### Authentication Features
-
-- **Login Page**: Modern, responsive design with gradient backgrounds
-- **Google OAuth**: One-click sign-in with Google
-- **Email/Password**: Traditional authentication
-- **Protected Dashboard**: Secure area for authenticated users
-- **Auto-redirect**: Automatic redirects based on auth state
-- **Auth Guards**: Route protection components
-
-### Quick Start with Authentication
-
-1. **Set up Supabase** (see `SUPABASE_SETUP.md`)
-2. **Configure Google OAuth** (see `GOOGLE_OAUTH_SETUP.md`)
-3. **Add environment variables**:
-
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```bash
+   git clone <repository-url>
+   cd mybohra-dashboard
    ```
 
-4. **Visit `/login`** to test authentication
-5. **Access `/dashboard`** after signing in
+2. **Install dependencies**
 
-### Authentication Components
+   ```bash
+   npm install
+   ```
 
-- `LoginPage` - Beautiful login interface
-- `AuthGuard` - Route protection wrapper
-- `AuthNav` - Navigation with auth state
-- `useAuth` - Authentication React hook
+3. **Set up environment variables**
+   Create a `.env.local` file with your Supabase credentials:
 
-## Getting Started
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+   ```
 
-First, run the development server:
+4. **Set up the database**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+   ```bash
+   npm run setup:db
+   ```
+
+   Copy the generated SQL to your Supabase SQL Editor and run it.
+
+5. **Generate TypeScript types and services**
+
+   ```bash
+   npm run entity:sync
+   ```
+
+6. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+## 🗄️ Database Setup
+
+The application uses Supabase for the backend. To set up the database:
+
+1. **Get your Supabase credentials** from [Supabase Dashboard](https://supabase.com/dashboard)
+2. **Run the setup command**: `npm run setup:db`
+3. **Copy the SQL** to your Supabase SQL Editor
+4. **Run the SQL** to create tables and policies
+5. **Sync the schema**: `npm run entity:sync`
+
+## 📁 Project Structure
+
+```
+├── app/                    # Next.js app router pages
+│   ├── dashboard/         # Dashboard pages
+│   ├── login/             # Authentication pages
+│   └── users/             # User management pages
+├── src/
+│   ├── components/        # React components
+│   │   ├── auth/         # Authentication components
+│   │   ├── layout/       # Layout components
+│   │   └── users/        # User management components
+│   ├── hooks/            # Custom React hooks
+│   ├── lib/              # Utilities and configurations
+│   │   ├── api/          # API services
+│   │   ├── config/       # Configuration files
+│   │   └── schema/       # Database schema definitions
+│   └── types/            # TypeScript type definitions
+├── scripts/               # Database and utility scripts
+└── public/               # Static assets
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔧 Available Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run entity:sync` - Sync database schema and generate types
+- `npm run entity:test` - Test entity system
+- `npm run check:env` - Check environment variables
+- `npm run setup:db` - Generate database setup SQL
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔐 Authentication
 
-## Learn More
+The application supports two authentication methods:
 
-To learn more about Next.js, take a look at the following resources:
+1. **Google OAuth** - Social login with Google
+2. **Email/Password** - Traditional email and password authentication
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Both methods are integrated with Supabase Auth and provide the same user experience.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 👥 User Management
 
-## Deploy on Vercel
+The dashboard includes a complete user management system:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **List Users**: View all users with search and filtering
+- **Create Users**: Add new users with role assignment
+- **Edit Users**: Update user information and roles
+- **Delete Users**: Remove users from the system
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🎨 UI Components
+
+The application uses a modern design system with:
+
+- **Dashboard Layout**: Header, sidebar, and main content area
+- **Responsive Design**: Works on desktop, tablet, and mobile
+- **Modern Styling**: Clean, professional appearance
+- **Interactive Elements**: Hover effects, transitions, and animations
+
+## 🚀 Deployment
+
+The application is ready for deployment on platforms like Vercel, Netlify, or any Node.js hosting service.
+
+1. **Build the application**: `npm run build`
+2. **Deploy to your platform**
+3. **Set environment variables** in your hosting platform
+4. **Your dashboard is ready!**
+
+## 📝 License
+
+This project is private and proprietary.
+
+## 🤝 Support
+
+For support or questions, please contact the development team.
