@@ -1,0 +1,9 @@
+.yarn
+.next
+dist
+vscode-default
+node_modules
+.github
+.dockerignore
+nginx.conf
+Dockerfile
