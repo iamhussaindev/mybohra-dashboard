@@ -32,7 +32,9 @@ async function testConnection() {
 
   try {
     // Try a simple query to test connection
-    const { data, error } = await supabase.from('users').select('count').limit(1)
+    const { data, error } = await supabase.from('user').select('count').limit(1)
+
+    console.log(data, error)
 
     if (error) {
       if (error.message.includes('relation "users" does not exist') || error.message.includes('Could not find the table')) {
@@ -83,14 +85,15 @@ async function getTableList() {
 
 async function getTableListAlternative() {
   // Try to discover tables by attempting to query common table names
-  const commonTables = ['users', 'posts', 'comments', 'categories', 'products', 'orders', 'profiles']
+  const commonTables = ['user', 'posts', 'comments', 'categories', 'products', 'orders', 'profiles']
   const existingTables = []
 
   for (const tableName of commonTables) {
     try {
-      const { error } = await supabase.from(tableName).select('*').limit(1)
+      const { data, error } = await supabase.from(tableName).select('*').limit(1)
       if (!error) {
         existingTables.push(tableName)
+        console.log(`✅ Found table: ${tableName}`)
       }
     } catch (error) {
       // Table doesn't exist, continue
@@ -129,7 +132,7 @@ async function getTableSchema(tableName) {
       `,
     })
 
-    if (columnsError) {
+    if (columnsError || (columns && columns.error)) {
       console.log(`⚠️  Could not get schema for ${tableName}, using sample data approach...`)
       return await getTableSchemaAlternative(tableName)
     }
@@ -182,6 +185,7 @@ async function getTableSchema(tableName) {
     return schema
   } catch (error) {
     console.log(`⚠️  Error getting schema for ${tableName}: ${error.message}`)
+    console.log(`🔄 Falling back to alternative method...`)
     return await getTableSchemaAlternative(tableName)
   }
 }
@@ -198,12 +202,17 @@ async function getTableSchemaAlternative(tableName) {
 
     if (data && data.length > 0) {
       const sampleRow = data[0]
+      console.log(`📊 Sample data from ${tableName}:`, Object.keys(sampleRow))
+      console.log(`📊 Sample row:`, sampleRow)
+
       const columns = Object.keys(sampleRow).map(key => ({
         column_name: key,
         data_type: inferDataType(sampleRow[key]),
         is_nullable: sampleRow[key] === null ? 'YES' : 'NO',
         column_default: null,
       }))
+
+      console.log(`📊 Generated columns:`, columns)
 
       const schema = {
         name: tableName,
@@ -212,14 +221,30 @@ async function getTableSchemaAlternative(tableName) {
         foreignKeys: [],
       }
 
+      console.log(`📊 Final schema:`, schema)
       tableInfo.set(tableName, schema)
       return schema
     } else {
-      console.log(`⚠️  Table ${tableName} is empty, using default schema...`)
+      console.log(`⚠️  Table ${tableName} is empty, using common schema...`)
+
+      // Try to get column information using a different approach
+      try {
+        const { data: columnData, error: columnError } = await supabase.from(tableName).select('*').limit(0) // This should return column info even with no data
+
+        if (!columnError) {
+          console.log(`📊 Table ${tableName} exists but is empty`)
+        }
+      } catch (e) {
+        console.log(`📊 Table ${tableName} structure unknown`)
+      }
+
+      // Use a more comprehensive default schema
       return {
         name: tableName,
         columns: [
           { column_name: 'id', data_type: 'uuid', is_nullable: 'NO', column_default: 'gen_random_uuid()' },
+          { column_name: 'name', data_type: 'text', is_nullable: 'YES', column_default: null },
+          { column_name: 'email', data_type: 'text', is_nullable: 'YES', column_default: null },
           { column_name: 'created_at', data_type: 'timestamp with time zone', is_nullable: 'NO', column_default: 'now()' },
           { column_name: 'updated_at', data_type: 'timestamp with time zone', is_nullable: 'NO', column_default: 'now()' },
         ],
@@ -275,8 +300,11 @@ function generateTypeScriptTypes(schemas) {
 
     const typeName = schema.name.charAt(0).toUpperCase() + schema.name.slice(1)
 
+    // Ensure columns is an array
+    const columns = Array.isArray(schema.columns) ? schema.columns : []
+
     // Generate base interface
-    const fields = schema.columns
+    const fields = columns
       .map(column => {
         const tsType = getTypeScriptType(column)
         return `  ${column.column_name}: ${tsType}`
@@ -286,7 +314,7 @@ function generateTypeScriptTypes(schemas) {
     types.push(`export interface ${typeName} {\n${fields}\n}`)
 
     // Generate Create interface (exclude auto-generated fields)
-    const createFields = schema.columns
+    const createFields = columns
       .filter(column => !column.column_name.includes('id') && !column.column_name.includes('created_at') && !column.column_name.includes('updated_at') && !column.column_default)
       .map(column => {
         const tsType = getTypeScriptType(column)
@@ -299,7 +327,7 @@ function generateTypeScriptTypes(schemas) {
     }
 
     // Generate Update interface (all fields optional)
-    const updateFields = schema.columns
+    const updateFields = columns
       .filter(column => !column.column_name.includes('id'))
       .map(column => {
         const tsType = getTypeScriptType(column)
@@ -318,15 +346,17 @@ function generateCRUDService(schema) {
 
   const typeName = schema.name.charAt(0).toUpperCase() + schema.name.slice(1)
   const tableName = schema.name
+  const tableConstant = `${typeName.toUpperCase()}_TABLE`
 
   return `
 import { supabase } from '@lib/config/supabase'
 import { ${typeName}, Create${typeName}Data, Update${typeName}Data } from '@lib/schema/types'
+import { ${tableConstant} } from '@lib/constants/tables'
 
 export class ${typeName}Service {
   static async getAll(): Promise<${typeName}[]> {
     const { data, error } = await supabase
-      .from('${tableName}')
+      .from(${tableConstant})
       .select('*')
       .order('created_at', { ascending: false })
     
@@ -336,7 +366,7 @@ export class ${typeName}Service {
 
   static async getById(id: string): Promise<${typeName} | null> {
     const { data, error } = await supabase
-      .from('${tableName}')
+      .from(${tableConstant})
       .select('*')
       .eq('id', id)
       .single()
@@ -347,7 +377,7 @@ export class ${typeName}Service {
 
   static async create(data: Create${typeName}Data): Promise<${typeName}> {
     const { data: result, error } = await supabase
-      .from('${tableName}')
+      .from(${tableConstant})
       .insert(data)
       .select()
       .single()
@@ -358,7 +388,7 @@ export class ${typeName}Service {
 
   static async update(id: string, data: Update${typeName}Data): Promise<${typeName}> {
     const { data: result, error } = await supabase
-      .from('${tableName}')
+      .from(${tableConstant})
       .update(data)
       .eq('id', id)
       .select()
@@ -370,7 +400,7 @@ export class ${typeName}Service {
 
   static async delete(id: string): Promise<void> {
     const { error } = await supabase
-      .from('${tableName}')
+      .from(${tableConstant})
       .delete()
       .eq('id', id)
     
@@ -379,7 +409,7 @@ export class ${typeName}Service {
 
   static async search(query: string): Promise<${typeName}[]> {
     const { data, error } = await supabase
-      .from('${tableName}')
+      .from(${tableConstant})
       .select('*')
       .or(\`name.ilike.%\${query}%,email.ilike.%\${query}%\`)
       .order('created_at', { ascending: false })
@@ -415,9 +445,13 @@ async function syncSchema() {
     // Get schema for each table
     const schemas = []
     for (const tableName of tables) {
+      console.log(`\n🔍 Processing table: ${tableName}`)
       const schema = await getTableSchema(tableName)
       if (schema) {
+        console.log(`✅ Schema for ${tableName}:`, schema)
         schemas.push(schema)
+      } else {
+        console.log(`❌ No schema for ${tableName}`)
       }
     }
 
@@ -427,9 +461,14 @@ async function syncSchema() {
     }
 
     console.log(`\n📝 Generating TypeScript types for ${schemas.length} tables...`)
+    console.log(
+      `📊 Schemas to process:`,
+      schemas.map(s => ({ name: s.name, columns: s.columns?.length || 0 }))
+    )
 
     // Generate TypeScript types
     const types = generateTypeScriptTypes(schemas)
+    console.log(`📝 Generated types:`, types.substring(0, 200) + '...')
 
     const typesDir = path.join(__dirname, '..', 'src', 'lib', 'schema')
     if (!fs.existsSync(typesDir)) {

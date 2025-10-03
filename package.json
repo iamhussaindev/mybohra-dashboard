@@ -9,10 +9,16 @@
     "lint": "next lint",
     "schema:sync": "node scripts/schema-sync.js sync",
     "schema:status": "node scripts/schema-sync.js status",
+    "create:sample": "node scripts/create-sample-tables.js create",
+    "add:data": "node scripts/add-sample-data.js add",
+    "test:exec-sql": "node scripts/test-exec-sql.js test",
+    "enable:exec-sql": "node scripts/test-exec-sql.js enable",
     "entity:sync": "node scripts/entity-sync-simple.js",
     "entity:test": "node scripts/test-entities.js",
     "check:env": "node scripts/check-env.js",
-    "setup:db": "node scripts/setup-database.js"
+    "setup:db": "node scripts/setup-database.js",
+    "import:library": "node scripts/import-library-data.js",
+    "test:library": "node scripts/test-library-import.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.58.0",
@@ -21,6 +27,7 @@
     "@types/aos": "^3.0.7",
     "@typescript-eslint/eslint-plugin": "^8.33.0",
     "@typescript-eslint/parser": "^8.33.0",
+    "antd": "^5.27.4",
     "aos": "^2.3.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -36,6 +43,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-fast-marquee": "^1.6.5",
+    "react-infinite-scroll-component": "^6.1.0",
     "react-toastify": "^11.0.5",
     "sass": "^1.86.3",
     "tailwind-merge": "^3.2.0",

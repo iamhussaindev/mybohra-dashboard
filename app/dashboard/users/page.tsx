@@ -2,11 +2,13 @@
 
 import AuthGuard from '@components/auth/AuthGuard'
 import DashboardLayout from '@components/layout/DashboardLayout'
-import UserForm from '@components/users/UserForm'
+import UserForm, { UserFormRef } from '@components/users/UserForm'
 import UserList from '@components/users/UserList'
-import { UserService } from '@lib/api/users'
-import { useState } from 'react'
-import { CreateUserData, UpdateUserData, User } from '../../src/types/user'
+import { UserService } from '@lib/api/generated/user'
+import { CreateUserData, UpdateUserData, User } from '@lib/schema/types'
+import { IconPlus } from '@tabler/icons-react'
+import { Button, Modal } from 'antd'
+import { useRef, useState } from 'react'
 
 function UsersManagement() {
   const [showForm, setShowForm] = useState(false)
@@ -14,16 +16,16 @@ function UsersManagement() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const formRef = useRef<UserFormRef>(null)
 
   const handleCreateUser = async (userData: CreateUserData | UpdateUserData) => {
     try {
       setLoading(true)
       setError(null)
-      await UserService.createUser(userData as CreateUserData)
+      await UserService.create(userData as CreateUserData)
       setSuccess('User created successfully!')
       setShowForm(false)
-      // Refresh the user list by triggering a re-render
-      window.location.reload()
+      handleUserUpdated()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create user')
     } finally {
@@ -37,12 +39,11 @@ function UsersManagement() {
     try {
       setLoading(true)
       setError(null)
-      await UserService.updateUser(editingUser.id, userData)
+      await UserService.update(editingUser.id.toString(), userData)
       setSuccess('User updated successfully!')
       setEditingUser(null)
       setShowForm(false)
-      // Refresh the user list by triggering a re-render
-      window.location.reload()
+      handleUserUpdated()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update user')
     } finally {
@@ -58,10 +59,9 @@ function UsersManagement() {
     try {
       setLoading(true)
       setError(null)
-      await UserService.deleteUser(userId)
+      await UserService.delete(userId)
       setSuccess('User deleted successfully!')
-      // Refresh the user list by triggering a re-render
-      window.location.reload()
+      // Refresh will be handled by UserTable component
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete user')
     } finally {
@@ -81,26 +81,23 @@ function UsersManagement() {
     setSuccess(null)
   }
 
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const handleUserUpdated = () => {
+    // Trigger refresh by updating the key
+    setRefreshKey(prev => prev + 1)
+  }
+
   return (
-    <DashboardLayout>
-      <div className="p-6 space-y-6 w-full">
+    <DashboardLayout
+      actions={[
+        <Button key="add-user" type="primary" icon={<IconPlus className="h-5 w-5" />} onClick={() => setShowForm(true)} className="bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700">
+          Add User
+        </Button>,
+      ]}
+      showSearch={false}>
+      <div className="space-y-6 w-full">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-800">User Management</h1>
-            <p className="text-slate-600 mt-1 text-sm">Manage users, roles, and permissions</p>
-          </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 text-sm font-medium">
-            <div className="flex items-center">
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Add New User
-            </div>
-          </button>
-        </div>
 
         {/* Success/Error Messages */}
         {success && (
@@ -126,17 +123,56 @@ function UsersManagement() {
         )}
 
         {/* User Form Modal */}
-        {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
-              <UserForm user={editingUser} onSubmit={editingUser ? handleUpdateUser : handleCreateUser} onCancel={handleCancelForm} loading={loading} />
-            </div>
-          </div>
-        )}
+        <Modal
+          title={editingUser ? 'Edit User' : 'Add New User'}
+          open={showForm}
+          onCancel={handleCancelForm}
+          width={800}
+          destroyOnHidden
+          footer={[
+            <Button key="cancel" onClick={handleCancelForm} disabled={loading}>
+              Cancel
+            </Button>,
+            <Button
+              key="submit"
+              type="primary"
+              loading={loading}
+              onClick={async () => {
+                // Get form data from the form ref
+                if (formRef.current) {
+                  const formData = formRef.current.getFormData()
+
+                  const userData = {
+                    name: formData.name.trim(),
+                    email: formData.email.trim(),
+                    phone_number: formData.phone_number.trim() || null,
+                    country: formData.country.trim() || null,
+                    unverfied_email: formData.unverfied_email.trim() || null,
+                    roles: formData.roles,
+                    status: formData.status,
+                  }
+
+                  // Basic validation
+                  if (!userData.name || !userData.email) {
+                    return
+                  }
+
+                  if (editingUser) {
+                    await handleUpdateUser(userData)
+                  } else {
+                    await handleCreateUser(userData)
+                  }
+                }
+              }}>
+              {editingUser ? 'Update User' : 'Create User'}
+            </Button>,
+          ]}>
+          <UserForm ref={formRef} user={editingUser ?? null} />
+        </Modal>
 
         {/* User List */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-          <UserList onEditUser={handleEditUser} onDeleteUser={handleDeleteUser} />
+        <div className="bg-white">
+          <UserList key={refreshKey} onEditUser={handleEditUser} onDeleteUser={handleDeleteUser} onUserUpdated={handleUserUpdated} />
         </div>
       </div>
     </DashboardLayout>

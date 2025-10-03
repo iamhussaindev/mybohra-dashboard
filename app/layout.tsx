@@ -1,6 +1,5 @@
 import Cursor from '@components/ui/atoms/Cursor'
 import ToastContainer from '@components/ui/molecules/ToastContainer'
-import { ReactLenis } from 'lenis/react'
 import { Metadata } from 'next'
 import localFont from 'next/font/local'
 import { Suspense } from 'react'
@@ -56,13 +55,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
       <body suppressHydrationWarning className={`${satoshi.variable} ${clashDisplay.variable} relative`}>
-        <ReactLenis root>
-          <Cursor />
-          <Suspense fallback={<div>Loading...</div>}>
-            <ToastContainer />
-            {children}
-          </Suspense>
-        </ReactLenis>
+        <Cursor />
+        <Suspense fallback={<div>Loading...</div>}>
+          <ToastContainer />
+          {children}
+        </Suspense>
       </body>
     </html>
   )

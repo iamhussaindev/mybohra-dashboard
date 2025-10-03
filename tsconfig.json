@@ -28,12 +28,12 @@
       "@styles/*": ["src/styles/*"],
       "@hooks/*": ["src/hooks/*"],
       "@utils/*": ["src/lib/utils/*"],
-      "@types/*": ["src/types/*"],
       "@constants/*": ["src/constants/*"],
       "@contexts/*": ["src/contexts/*"],
       "@services/*": ["src/services/*"],
       "@features/*": ["src/features/*"],
-      "@data/*": ["src/data/*"]
+      "@data/*": ["src/data/*"],
+      "@type/*": ["src/types/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

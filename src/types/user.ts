@@ -5,9 +5,6 @@ export interface User {
   name: string
   roles: string[]
   created_at: string
-  updated_at: string
-  created_by: string | null
-  updated_by: string | null
 }
 
 export interface CreateUserData {

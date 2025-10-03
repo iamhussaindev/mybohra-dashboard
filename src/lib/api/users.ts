@@ -1,10 +1,11 @@
 import { supabase } from '@lib/config/supabase'
+import { TABLES } from '@lib/constants/tables'
 import { CreateUserData, UpdateUserData, User } from '../../types/user'
 
 export class UserService {
   // Get all users
   static async getAllUsers(): Promise<User[]> {
-    const { data, error } = await supabase.from('users').select('*').order('created_at', { ascending: false })
+    const { data, error } = await supabase.from(TABLES.USER).select('*').order('created_at', { ascending: false })
 
     if (error) {
       throw new Error(`Failed to fetch users: ${error.message}`)
