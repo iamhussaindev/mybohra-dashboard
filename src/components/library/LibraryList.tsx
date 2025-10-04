@@ -2,9 +2,9 @@ import Table from '@components/ui/atoms/Table'
 import { useDebounce } from '@hooks/useDebounce'
 import { LibraryService } from '@lib/api/library'
 import { StorageService } from '@lib/api/storage'
-import { IconBrandYoutube, IconEdit, IconTrash, IconUpload } from '@tabler/icons-react'
+import { IconBrandYoutube, IconTrash, IconUpload } from '@tabler/icons-react'
 import { AlbumEnum, Library, LibraryFilters } from '@type/library'
-import { Button, Card, Input, message, Popconfirm, Select } from 'antd'
+import { Button, Input, message, Popconfirm, Select } from 'antd'
 import { useEffect, useState } from 'react'
 
 interface LibraryListProps {
@@ -439,13 +439,13 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
       dataIndex: 'name',
       key: 'name',
       width: 300,
+
       render: (text: string, record: Library) => {
         const dragState = dragStates[record.id] || { isDragOver: false, dragCounter: 0 }
-
         return (
           <div
-            className={`p-2 cursor-pointer transition-all duration-200 ${
-              dragState.isDragOver ? 'bg-blue-50 border border-blue-300 rounded' : selectedItem?.id === record.id ? 'bg-blue-100 border border-blue-400 rounded' : 'hover:bg-gray-50 rounded'
+            className={`cursor-pointer transition-all duration-200 ${
+              dragState.isDragOver ? 'bg-blue-50 border border-blue-300 rounded' : selectedItem?.id === record.id ? 'rounded' : 'hover:bg-gray-50 rounded'
             }`}
             onClick={() => handleItemSelect(record)}
             onDragEnter={e => handleDragEnter(record.id, e)}
@@ -453,7 +453,6 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
             onDragOver={handleDragOver}
             onDrop={e => handleDrop(record, e)}>
             <div className="font-medium text-gray-900 text-sm">{text}</div>
-            {record.description && <div className="text-xs text-gray-600 mt-1 line-clamp-1">{record.description}</div>}
             {dragState.isDragOver && <div className="text-xs text-blue-600 mt-1">Drop files here</div>}
           </div>
         )
@@ -576,6 +575,15 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
               columns={columns}
               data={libraries}
               rowKey="id"
+              sticky={true}
+              $clickable={true}
+              onRow={record => ({
+                onClick: () => handleItemSelect(record),
+                style: {
+                  cursor: 'pointer',
+                  backgroundColor: record.id === selectedItem?.id ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
+                },
+              })}
               loading={loading}
               refetch={refetch}
               pagination={{
@@ -591,7 +599,7 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
 
       {/* Right Sidebar */}
       {sidebarVisible && selectedItem && (
-        <div className="w-[350px] bg-white/90 backdrop-blur-sm border-l border-white/20 shadow-2xl shadow-blue-500/10 overflow-auto">
+        <div className="w-[400px] shadow-blue-500/10 overflow-auto border-l border-gray-200">
           <ItemSidebar
             item={selectedItem}
             editingItem={editingItem}
@@ -663,58 +671,55 @@ const ItemSidebar = ({ item, editingItem, setEditingItem, onClose, onSave, onDel
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-gray-900">Edit Item</h3>
-          <Button type="text" size="small" onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            ✕
-          </Button>
+      <div className="px-3 py-4 h-[55px] bg-gray-50 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-gray-900 text-sm">Edit Item</h3>
+          </div>
+          <button onClick={onClose} className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors">
+            <span className="text-gray-500 text-sm">✕</span>
+          </button>
         </div>
-        <p className="text-sm text-gray-600">ID: {item.id}</p>
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-4 space-y-6 overflow-auto">
-        {/* 1. Update Metadata */}
-        <Card size="small" className="shadow-sm">
-          <div className="space-y-4">
-            <h4 className="font-medium text-gray-900 flex items-center">
-              <IconEdit className="w-4 h-4 mr-2 text-blue-500" />
-              Update Details
-            </h4>
-
+      <div className="flex-1 p-3 space-y-4 overflow-auto">
+        {/* 1. Basic Info */}
+        <div className="space-y-3">
+          <div className="space-y-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-              <Input value={editingItem.name || ''} onChange={e => setEditingItem({ ...editingItem, name: e.target.value })} placeholder="Enter title" size="small" />
+              <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
+              <Input value={editingItem.name || ''} onChange={e => setEditingItem({ ...editingItem, name: e.target.value })} placeholder="Enter title" size="small" className="text-sm" />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
               <Input.TextArea
                 value={editingItem.description || ''}
                 onChange={e => setEditingItem({ ...editingItem, description: e.target.value })}
                 placeholder="Enter description"
-                rows={3}
+                rows={2}
                 size="small"
+                className="text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Album</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Album</label>
               <Select
                 value={editingItem.album}
                 onChange={value => setEditingItem({ ...editingItem, album: value })}
                 placeholder="Select album"
                 size="small"
-                className="w-full"
+                className="w-full text-sm"
                 options={Object.values(AlbumEnum).map(album => ({ label: album, value: album }))}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Tags</label>
               <Input
                 value={Array.isArray(editingItem.tags) ? editingItem.tags.join(', ') : editingItem.tags || ''}
                 onChange={e =>
@@ -728,11 +733,12 @@ const ItemSidebar = ({ item, editingItem, setEditingItem, onClose, onSave, onDel
                 }
                 placeholder="tag1, tag2, tag3"
                 size="small"
+                className="text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Categories (comma-separated)</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Categories</label>
               <Input
                 value={Array.isArray(editingItem.categories) ? editingItem.categories.join(', ') : editingItem.categories || ''}
                 onChange={e =>
@@ -746,53 +752,29 @@ const ItemSidebar = ({ item, editingItem, setEditingItem, onClose, onSave, onDel
                 }
                 placeholder="category1, category2"
                 size="small"
+                className="text-sm"
               />
             </div>
           </div>
-        </Card>
+        </div>
 
-        {/* 2. Media Management */}
-        <Card size="small" className="shadow-sm">
-          <div className="space-y-4">
-            <h4 className="font-medium text-gray-900 flex items-center">
-              <IconUpload className="w-4 h-4 mr-2 text-green-500" />
-              Media Files
-            </h4>
+        {/* 2. Media Files */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2 pb-2 border-b border-gray-100">
+            <IconUpload className="w-4 h-4 text-green-500" />
+            <h4 className="font-medium text-gray-900 text-sm">Media Files</h4>
+          </div>
 
-            {/* Audio */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Audio File</label>
-              {editingItem.audio_url ? (
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2 p-2 bg-green-50 rounded border">
-                    🎵
-                    <span className="text-sm text-green-700 flex-1 truncate">Audio file present</span>
-                  </div>
-                  <div className="flex space-x-2">
-                    <input
-                      type="file"
-                      accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg"
-                      onChange={e => {
-                        const file = e.target.files?.[0]
-                        if (file) handleFileUpload(file, 'audio')
-                        e.target.value = ''
-                      }}
-                      className="hidden"
-                      id="audio-upload"
-                    />
-                    <Button type="primary" size="small" onClick={() => document.getElementById('audio-upload')?.click()} className="flex-1">
-                      Replace
-                    </Button>
-                    <Button type="text" size="small" danger onClick={() => handleDeleteFile('audio')}>
-                      Delete
-                    </Button>
-                  </div>
+          {/* Audio */}
+          <div className="space-y-2">
+            <label className="block text-xs font-medium text-gray-600">Audio File</label>
+            {editingItem.audio_url ? (
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2 p-2 bg-green-50 rounded-lg border border-green-200">
+                  <span className="text-green-600">🎵</span>
+                  <span className="text-xs text-green-700 flex-1 truncate">Audio file present</span>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="p-4 border-2 border-dashed border-gray-300 rounded text-center">
-                    <span className="text-sm text-gray-500">No audio file</span>
-                  </div>
+                <div className="flex space-x-1">
                   <input
                     type="file"
                     accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg"
@@ -802,49 +784,49 @@ const ItemSidebar = ({ item, editingItem, setEditingItem, onClose, onSave, onDel
                       e.target.value = ''
                     }}
                     className="hidden"
-                    id="audio-upload-new"
+                    id="audio-upload"
                   />
-                  <Button type="primary" size="small" onClick={() => document.getElementById('audio-upload-new')?.click()} className="w-full">
-                    Upload Audio
+                  <Button type="primary" size="small" onClick={() => document.getElementById('audio-upload')?.click()} className="flex-1 text-xs h-6 bg-blue-500 hover:bg-blue-600">
+                    Replace
+                  </Button>
+                  <Button type="text" size="small" danger onClick={() => handleDeleteFile('audio')} className="text-xs h-6">
+                    Delete
                   </Button>
                 </div>
-              )}
-            </div>
-
-            {/* PDF */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">PDF File</label>
-              {editingItem.pdf_url ? (
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2 p-2 bg-red-50 rounded border">
-                    📄
-                    <span className="text-sm text-red-700 flex-1 truncate">PDF file present</span>
-                  </div>
-                  <div className="flex space-x-2">
-                    <input
-                      type="file"
-                      accept=".pdf,application/pdf"
-                      onChange={e => {
-                        const file = e.target.files?.[0]
-                        if (file) handleFileUpload(file, 'pdf')
-                        e.target.value = ''
-                      }}
-                      className="hidden"
-                      id="pdf-upload"
-                    />
-                    <Button type="primary" size="small" onClick={() => document.getElementById('pdf-upload')?.click()} className="flex-1">
-                      Replace
-                    </Button>
-                    <Button type="text" size="small" danger onClick={() => handleDeleteFile('pdf')}>
-                      Delete
-                    </Button>
-                  </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                  <span className="text-xs text-gray-500">No audio file</span>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="p-4 border-2 border-dashed border-gray-300 rounded text-center">
-                    <span className="text-sm text-gray-500">No PDF file</span>
-                  </div>
+                <input
+                  type="file"
+                  accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg"
+                  onChange={e => {
+                    const file = e.target.files?.[0]
+                    if (file) handleFileUpload(file, 'audio')
+                    e.target.value = ''
+                  }}
+                  className="hidden"
+                  id="audio-upload-new"
+                />
+                <Button type="primary" size="small" onClick={() => document.getElementById('audio-upload-new')?.click()} className="w-full text-xs h-6 bg-blue-500 hover:bg-blue-600">
+                  Upload Audio
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* PDF */}
+          <div className="space-y-2">
+            <label className="block text-xs font-medium text-gray-600">PDF File</label>
+            {editingItem.pdf_url ? (
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2 p-2 bg-red-50 rounded-lg border border-red-200">
+                  <span className="text-red-600">📄</span>
+                  <span className="text-xs text-red-700 flex-1 truncate">PDF file present</span>
+                </div>
+                <div className="flex space-x-1">
                   <input
                     type="file"
                     accept=".pdf,application/pdf"
@@ -854,39 +836,66 @@ const ItemSidebar = ({ item, editingItem, setEditingItem, onClose, onSave, onDel
                       e.target.value = ''
                     }}
                     className="hidden"
-                    id="pdf-upload-new"
+                    id="pdf-upload"
                   />
-                  <Button type="primary" size="small" onClick={() => document.getElementById('pdf-upload-new')?.click()} className="w-full">
-                    Upload PDF
+                  <Button type="primary" size="small" onClick={() => document.getElementById('pdf-upload')?.click()} className="flex-1 text-xs h-6 bg-blue-500 hover:bg-blue-600">
+                    Replace
+                  </Button>
+                  <Button type="text" size="small" danger onClick={() => handleDeleteFile('pdf')} className="text-xs h-6">
+                    Delete
                   </Button>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                  <span className="text-xs text-gray-500">No PDF file</span>
+                </div>
+                <input
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={e => {
+                    const file = e.target.files?.[0]
+                    if (file) handleFileUpload(file, 'pdf')
+                    e.target.value = ''
+                  }}
+                  className="hidden"
+                  id="pdf-upload-new"
+                />
+                <Button type="primary" size="small" onClick={() => document.getElementById('pdf-upload-new')?.click()} className="w-full text-xs h-6 bg-blue-500 hover:bg-blue-600">
+                  Upload PDF
+                </Button>
+              </div>
+            )}
           </div>
-        </Card>
+        </div>
 
         {/* 3. YouTube */}
-        <Card size="small" className="shadow-sm">
-          <div className="space-y-4">
-            <h4 className="font-medium text-gray-900 flex items-center">
-              <IconBrandYoutube className="w-4 h-4 mr-2 text-red-500" />
-              YouTube URL
-            </h4>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">YouTube URL</label>
-              <Input value={editingItem.youtube_url || ''} onChange={e => setEditingItem({ ...editingItem, youtube_url: e.target.value })} placeholder="https://youtube.com/watch?v=..." size="small" />
-            </div>
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2 pb-2 border-b border-gray-100">
+            <IconBrandYoutube className="w-4 h-4 text-red-500" />
+            <h4 className="font-medium text-gray-900 text-sm">YouTube</h4>
           </div>
-        </Card>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">YouTube URL</label>
+            <Input
+              value={editingItem.youtube_url || ''}
+              onChange={e => setEditingItem({ ...editingItem, youtube_url: e.target.value })}
+              placeholder="https://youtube.com/watch?v=..."
+              size="small"
+              className="text-sm"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Footer Actions */}
-      <div className="p-4 border-t border-gray-200 bg-gray-50 space-y-2">
-        <Button type="primary" onClick={onSave} className="w-full bg-gradient-to-r from-blue-500 to-purple-500 border-0">
+      <div className="p-3 border-t border-gray-100 bg-gray-50 space-y-2">
+        <Button type="primary" onClick={onSave} className="w-full bg-gradient-to-r from-blue-500 to-purple-500 border-0 text-sm h-8 hover:shadow-md">
           Save Changes
         </Button>
         <Popconfirm title="Delete this item?" description="This action cannot be undone." onConfirm={onDelete} okText="Delete" cancelText="Cancel">
-          <Button type="text" danger className="w-full">
+          <Button type="text" danger className="w-full text-sm h-8 hover:bg-red-50">
             <IconTrash className="w-4 h-4 mr-2" />
             Delete Item
           </Button>
