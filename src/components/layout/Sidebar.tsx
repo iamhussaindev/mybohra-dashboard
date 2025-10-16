@@ -1,6 +1,5 @@
 import {
   Icon,
-  IconActivity,
   IconCalendar,
   IconChartBar,
   IconChartPie,
@@ -36,11 +35,6 @@ const sidebarSections: SidebarSection[] = [
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: IconDashboard, count: 0 },
       { name: 'Analytics', href: '/dashboard/analytics', icon: IconChartBar },
-      {
-        name: 'Analytics Table',
-        href: '/dashboard/analytics-table',
-        icon: IconActivity,
-      },
       { name: 'Users', href: '/dashboard/users', icon: IconUsers },
       { name: 'Library', href: '/dashboard/library', icon: IconFolder },
       {
@@ -55,7 +49,7 @@ const sidebarSections: SidebarSection[] = [
         href: '/dashboard/admin-calendar',
         icon: IconCalendar,
       },
-      { name: 'Locations', href: '/dashboard/locations', icon: IconLocation },
+      { name: 'Locations', href: '/dashboard/location', icon: IconLocation },
       { name: 'Devices', href: '/dashboard/devices', icon: IconDeviceMobile },
     ],
   },

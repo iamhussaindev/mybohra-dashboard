@@ -35,12 +35,11 @@ const Table: React.FC<Props> = ({
   data,
   columns,
   refetch,
-  size,
   pagination: { total, hasNextPage } = { hasNextPage: false },
   setParams,
   params,
   getFilters = () => {},
-  fixedScroll,
+
   defaultSortingKey,
   showFooter,
   ...tableProps
@@ -55,7 +54,7 @@ const Table: React.FC<Props> = ({
     }
   }
 
-  const onChange: TableProps<any>['onChange'] = (_, filters, sorter, __) => {
+  const onChange: TableProps<any>['onChange'] = (_, filters, sorter) => {
     if (setParams) setParams({ ...params, ...getFilters(filters), ...getSorter(sorter) })
   }
 

@@ -1,8 +1,11 @@
+import Table from '@components/ui/atoms/Table'
+import { useDebounce } from '@hooks/useDebounce'
 import { MiqaatService } from '@lib/api/miqaat'
-import { IconCalendar, IconEdit, IconFilter, IconMapPin, IconMoon, IconSearch, IconStar, IconSun, IconTrash } from '@tabler/icons-react'
-import { Miqaat, MiqaatFilters, MiqaatTypeEnum, PhaseEnum } from '@type/miqaat'
-import { Badge, Button, Input, message, Popconfirm, Select, Space, Table, Tag } from 'antd'
-import { useEffect, useState } from 'react'
+import HijriDate from '@lib/helpers/HijriDate'
+import { IconCalendar, IconEdit, IconFilter, IconMapPin, IconSearch, IconTrash } from '@tabler/icons-react'
+import { Miqaat, MiqaatFilters, MiqaatTypeEnum } from '@type/miqaat'
+import { Button, Input, message, Popconfirm, Select, Space, Tag } from 'antd'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface MiqaatListProps {
   onEditMiqaat?: (miqaat: Miqaat) => void
@@ -13,50 +16,95 @@ interface MiqaatListProps {
 const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatListProps) => {
   const [miqaats, setMiqaats] = useState<Miqaat[]>([])
   const [loading, setLoading] = useState(false)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [filters, setFilters] = useState<MiqaatFilters>({})
   const [pagination, setPagination] = useState({
     current: 1,
-    pageSize: 10,
+    pageSize: 20,
     total: 0,
   })
+  const [hasMore, setHasMore] = useState(true)
 
-  const loadMiqaats = async (page = 1, search = '', filterData: MiqaatFilters = {}) => {
+  // Debounce search query to avoid excessive API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 500)
+  const isInitialMount = useRef(true)
+
+  const loadMiqaatsInternal = async (page: number, pageSize: number, append: boolean, currentFilters: MiqaatFilters, searchQuery: string) => {
     try {
-      setLoading(true)
+      if (append) {
+        setLoadingMore(true)
+      } else {
+        setLoading(true)
+      }
 
-      const result = await MiqaatService.getPaginated(page, pagination.pageSize, filterData)
-      setMiqaats(result.data)
-      setPagination(prev => ({ ...prev, total: result.total, current: page }))
+      // Combine filters with debounced search query for server-side filtering
+      const combinedFilters: MiqaatFilters = {
+        ...currentFilters,
+        name: searchQuery || undefined,
+      }
+
+      const result = await MiqaatService.getPaginated(page, pageSize, combinedFilters)
+
+      if (append) {
+        // Prevent duplicates by checking if items already exist
+        setMiqaats(prev => {
+          const existingIds = new Set(prev.map(m => m.id))
+          const newItems = result.data.filter(item => !existingIds.has(item.id))
+          return [...prev, ...newItems]
+        })
+      } else {
+        setMiqaats(result.data)
+      }
+
+      setPagination(prev => ({ ...prev, total: result.total, current: page, pageSize }))
+      setHasMore(result.data.length === pageSize && page * pageSize < result.total)
     } catch (error) {
       message.error('Failed to load miqaats')
       console.error('Load miqaats error:', error)
     } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
   }
 
+  // Refetch function for the Table component's infinite scroll
+  const refetch = useCallback(
+    async (paginate = false, reset = false) => {
+      if (paginate && !loadingMore && !loading && hasMore) {
+        const nextPage = pagination.current + 1
+        await loadMiqaatsInternal(nextPage, pagination.pageSize, true, filters, debouncedSearchQuery)
+      } else if (reset) {
+        await loadMiqaatsInternal(1, pagination.pageSize, false, filters, debouncedSearchQuery)
+      }
+    },
+    [loadingMore, loading, hasMore, pagination.current, pagination.pageSize, filters, debouncedSearchQuery]
+  )
+
+  // Initial load and reload when filters change
   useEffect(() => {
-    loadMiqaats()
-  }, [])
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      loadMiqaatsInternal(1, pagination.pageSize, false, filters, debouncedSearchQuery)
+      return
+    }
+    // Reset to page 1 when filters change
+    loadMiqaatsInternal(1, pagination.pageSize, false, filters, debouncedSearchQuery)
+  }, [debouncedSearchQuery, filters])
 
   const handleSearch = (value: string) => {
     setSearchQuery(value)
-    const searchFilters = { ...filters, name: value }
-    loadMiqaats(1, value, searchFilters)
   }
 
   const handleFilterChange = (key: keyof MiqaatFilters, value: any) => {
-    const newFilters = { ...filters, [key]: value }
-    setFilters(newFilters)
-    loadMiqaats(1, searchQuery, newFilters)
+    setFilters(prev => ({ ...prev, [key]: value }))
   }
 
   const handleDelete = async (id: number) => {
     try {
       await MiqaatService.delete(id)
       message.success('Miqaat deleted successfully')
-      loadMiqaats(pagination.current, searchQuery, filters)
+      loadMiqaatsInternal(pagination.current, pagination.pageSize, false, filters, debouncedSearchQuery)
       onDeleteMiqaat?.(id)
     } catch (error) {
       message.error('Failed to delete miqaat')
@@ -79,13 +127,9 @@ const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatLis
     return colors[type || ''] || 'default'
   }
 
-  const formatDate = (date?: number, month?: number) => {
+  const formatHijriDate = (date?: number, month?: number) => {
     if (!date || !month) return '-'
-    return `${date}/${month}`
-  }
-
-  const getPhaseIcon = (phase: PhaseEnum) => {
-    return phase === PhaseEnum.DAY ? <IconSun className="h-4 w-4 text-yellow-500" /> : <IconMoon className="h-4 w-4 text-blue-500" />
+    return `${date} ${HijriDate.SHORT_NAMES[month - 1]}`
   }
 
   const columns = [
@@ -93,14 +137,10 @@ const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatLis
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      render: (text: string, record: Miqaat) => (
+      render: (text: string) => (
         <div className="flex items-center gap-2">
           <div>
-            <div className="font-medium text-gray-900 flex items-center gap-2">
-              {text}
-              {record.important && <IconStar className="h-4 w-4 text-yellow-500" />}
-            </div>
-            {record.description && <div className="text-sm text-gray-500 mt-1">{record.description}</div>}
+            <div className="font-normal flex items-center gap-2">{text} </div>
           </div>
         </div>
       ),
@@ -116,16 +156,10 @@ const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatLis
       key: 'date',
       render: (record: Miqaat) => (
         <div className="space-y-1">
-          <div className="flex items-center gap-1 text-sm">
+          <div className="flex font-normal items-center gap-1">
             <IconCalendar className="h-3 w-3 text-gray-400" />
-            {formatDate(record.date, record.month)}
+            {formatHijriDate(record.date, record.month)}
           </div>
-          {record.date_night && record.month_night && (
-            <div className="flex items-center gap-1 text-sm text-gray-500">
-              <IconMoon className="h-3 w-3 text-gray-400" />
-              {formatDate(record.date_night, record.month_night)}
-            </div>
-          )}
         </div>
       ),
     },
@@ -135,7 +169,7 @@ const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatLis
       key: 'location',
       render: (location?: string) =>
         location ? (
-          <div className="flex items-center gap-1 text-sm text-gray-600">
+          <div className="flex font-normal items-center gap-1 text-gray-600">
             <IconMapPin className="h-3 w-3" />
             {location}
           </div>
@@ -143,23 +177,7 @@ const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatLis
           '-'
         ),
     },
-    {
-      title: 'Phase',
-      dataIndex: 'phase',
-      key: 'phase',
-      render: (phase: PhaseEnum) => (
-        <div className="flex items-center gap-1">
-          {getPhaseIcon(phase)}
-          <span className="text-sm">{phase}</span>
-        </div>
-      ),
-    },
-    {
-      title: 'Priority',
-      dataIndex: 'priority',
-      key: 'priority',
-      render: (priority?: number) => (priority ? <Badge count={priority} color="blue" /> : '-'),
-    },
+
     {
       title: 'Actions',
       key: 'actions',
@@ -184,7 +202,7 @@ const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatLis
   return (
     <div>
       {/* Search and Filters */}
-      <div className="bg-white p-4 rounded-lg border border-gray-200">
+      <div className="bg-white p-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <Input placeholder="Search miqaats..." prefix={<IconSearch className="h-4 w-4 text-gray-400" />} value={searchQuery} onChange={e => handleSearch(e.target.value)} className="w-full" />
@@ -200,7 +218,7 @@ const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatLis
             <Select placeholder="Filter by month" style={{ width: 120 }} allowClear onChange={value => handleFilterChange('month', value)}>
               {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
                 <Select.Option key={month} value={month}>
-                  {month}
+                  {HijriDate.SHORT_NAMES[month - 1]}
                 </Select.Option>
               ))}
             </Select>
@@ -213,7 +231,7 @@ const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatLis
               onClick={() => {
                 setFilters({})
                 setSearchQuery('')
-                loadMiqaats()
+                loadMiqaatsInternal(1, pagination.pageSize, false, {}, '')
               }}>
               Clear Filters
             </Button>
@@ -222,23 +240,19 @@ const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatLis
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg border border-gray-200">
+      <div className="bg-white border-t border-gray-200">
         <Table
+          showFooter
           columns={columns}
-          dataSource={miqaats}
+          data={miqaats}
           rowKey="id"
-          loading={loading}
+          loading={loading || loadingMore}
+          refetch={refetch}
           pagination={{
+            total: pagination.total,
             current: pagination.current,
             pageSize: pagination.pageSize,
-            total: pagination.total,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
-            onChange: (page, pageSize) => {
-              setPagination(prev => ({ ...prev, pageSize: pageSize || 10 }))
-              loadMiqaats(page, searchQuery, filters)
-            },
+            hasNextPage: hasMore,
           }}
         />
       </div>

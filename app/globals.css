@@ -1,25 +1,71 @@
-
 /* @import "antd/dist/reset.css"; */
-@import "tailwindcss";
+@import 'tailwindcss';
 
-/* Apply Satoshi font to Ant Design components */
+/* CF Font Family */
+@font-face {
+  font-family: 'CF';
+  src: url('/assets/fonts/cf-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'CF';
+  src: url('/assets/fonts/cf-medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'CF';
+  src: url('/assets/fonts/cf-semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'CF';
+  src: url('/assets/fonts/cf-bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Apply CF font to Ant Design components */
 .ant-input,
 .ant-input-affix-wrapper,
+.ant-input-number,
+.ant-input-textarea,
+.ant-select,
 .ant-select-selector,
-.ant-btn,
-.ant-modal-title,
-.ant-form-item-label > label,
 .ant-select-selection-item,
 .ant-select-selection-placeholder,
-.ant-modal-body,
-.ant-modal-content,
 .ant-select-dropdown,
 .ant-select-item,
 .ant-select-item-option,
 .ant-select-item-option-content,
+.ant-btn,
+.ant-btn-primary,
+.ant-btn-default,
+.ant-btn-link,
+.ant-modal,
+.ant-modal-title,
+.ant-modal-body,
+.ant-modal-content,
+.ant-modal-header,
+.ant-modal-footer,
+.ant-form,
+.ant-form-item,
+.ant-form-item-label > label,
 .ant-table,
 .ant-table-thead > tr > th,
 .ant-table-tbody > tr > td,
+.ant-table-thead th,
+.ant-table-tbody td,
+.ant-table-cell,
 .ant-table-filter-dropdown,
 .ant-table-filter-dropdown-btns,
 .ant-table-filter-trigger,
@@ -28,6 +74,7 @@
 .ant-table-pagination,
 .ant-pagination,
 .ant-pagination-item,
+.ant-pagination-item-link,
 .ant-pagination-prev,
 .ant-pagination-next,
 .ant-pagination-jump-prev,
@@ -36,11 +83,73 @@
 .ant-pagination-options-size-changer,
 .ant-pagination-options-quick-jumper,
 .ant-tag,
+.ant-badge,
 .ant-dropdown,
 .ant-dropdown-menu,
-.ant-dropdown-menu-item {
-  font-weight: 500;
-  font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+.ant-dropdown-menu-item,
+.ant-dropdown-menu-title-content,
+.ant-menu,
+.ant-menu-item,
+.ant-menu-submenu-title,
+.ant-popconfirm,
+.ant-popconfirm-message,
+.ant-popconfirm-buttons,
+.ant-message,
+.ant-notification,
+.ant-notification-notice-message,
+.ant-notification-notice-description,
+.ant-drawer,
+.ant-drawer-header,
+.ant-drawer-title,
+.ant-drawer-body,
+.ant-card,
+.ant-card-head,
+.ant-card-head-title,
+.ant-card-body,
+.ant-tabs,
+.ant-tabs-tab,
+.ant-tabs-tab-btn,
+.ant-tooltip,
+.ant-tooltip-inner,
+.ant-popover,
+.ant-popover-inner,
+.ant-popover-inner-content,
+.ant-checkbox-wrapper,
+.ant-radio-wrapper,
+.ant-switch,
+.ant-slider,
+.ant-steps,
+.ant-steps-item-title,
+.ant-steps-item-description,
+.ant-upload,
+.ant-upload-text,
+.ant-calendar,
+.ant-picker,
+.ant-picker-input > input,
+.ant-descriptions,
+.ant-descriptions-item-label,
+.ant-descriptions-item-content,
+.ant-empty-description,
+.ant-spin-text,
+.ant-result-title,
+.ant-result-subtitle {
+  font-family: 'CF', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* Specific font weights for different components */
+.ant-btn {
+  font-weight: 500 !important;
+}
+
+.ant-table-thead > tr > th,
+.ant-form-item-label > label {
+  font-weight: 500 !important;
+}
+
+.ant-modal-title,
+.ant-drawer-title,
+.ant-card-head-title {
+  font-weight: 600 !important;
 }
 
 .ant-btn-icon {
@@ -59,13 +168,11 @@
   overflow: hidden;
 }
 
-
-
 :root {
   --text-color: #000000;
-  --backdrop: hsla(0, 0%, 100%, .8);
+  --backdrop: hsla(0, 0%, 100%, 0.8);
   --text-primary: #000000;
-  --text-secondary: #D1D5DB;
+  --text-secondary: #d1d5db;
   --text-primary: #0a0219;
   --text-secondary: #0a0a0a;
   --text-inverse: #f7f8fa;
@@ -74,7 +181,7 @@
   --bg-700: #e2e8f0;
   --bg-800: #fff;
   --bg-900: #f7f8fa;
-  --backdrop: hsla(0,0%,100%,.8);
+  --backdrop: hsla(0, 0%, 100%, 0.8);
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
   --card: 0 0% 100%;
@@ -94,11 +201,12 @@
   --border: 240 5.9% 90%;
   --input: 240 5.9% 90%;
   --ring: 240 10% 3.9%;
-  --radius: 0.5rem
+  --radius: 0.5rem;
+  --font-cf: 'CF', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   color-scheme: light dark;
   color: var(--text-color);
   background-color: var(--background-color);
-  font-family: var(--font-satoshi);
+  font-family: var(--font-cf);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -115,7 +223,7 @@
   --bg-700: #1e1e27;
   --bg-800: #111116;
   --bg-900: #0b0b0d;
-  --backdrop: rgba(11,11,13,.8);
+  --backdrop: rgba(11, 11, 13, 0.8);
   --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
   --card: 240 10% 3.9%;
@@ -135,11 +243,10 @@
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
   --ring: 240 4.9% 83.9%;
-  --toastify-font-family: var(--font-satoshi);
+  --toastify-font-family: var(--font-cf);
 }
 
- /* disable mobile for now */
-
+/* disable mobile for now */
 
 .dark {
   --background-color: #000000;
@@ -163,17 +270,14 @@
   opacity: 0;
 }
 
-
-
-
 h1,
 h2,
 h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-satoshi);
-  font-weight: 500;
+  font-family: var(--font-cf);
+  font-weight: 600;
 }
 
 /* Override Ant Design h element margins */
@@ -191,6 +295,10 @@ h6 {
 
 .font-clash-display {
   font-family: var(--font-clash-display);
+}
+
+.font-cf {
+  font-family: var(--font-cf);
 }
 
 .text-highlight-primary {
@@ -215,19 +323,19 @@ h6 {
 
 .transition-colors {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(.4,0,.2,1);
-  transition-duration: .15s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 0.15s;
 }
 
 .subtitle {
-  word-spacing: .125rem;
-  letter-spacing: .05rem;
+  word-spacing: 0.125rem;
+  letter-spacing: 0.05rem;
   color: var(--highlight);
 }
 
 .shimmer {
   font-weight: 500;
-  background: currentColor -webkit-gradient(linear, 100% 0, 0 0, from(#fff), color-stop(.5, #fff), to(#fff));
+  background: currentColor -webkit-gradient(linear, 100% 0, 0 0, from(#fff), color-stop(0.5, #fff), to(#fff));
   background-position: -4rem top;
   background-repeat: no-repeat;
   -webkit-background-clip: text;
@@ -242,10 +350,10 @@ h6 {
     background-position: -4rem top;
   }
   70% {
-      background-position: 12.5rem top;
+    background-position: 12.5rem top;
   }
   100% {
-      background-position: 12.5rem top;
+    background-position: 12.5rem top;
   }
 }
 
@@ -254,17 +362,16 @@ body {
   min-width: 320px;
   min-height: 100vh;
   width: 100%;
-  font-family: var(--font-satoshi);
+  font-family: var(--font-cf);
   background-color: var(--bg-900);
   overflow-x: hidden;
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
   font-synthesis-small-caps: none;
   b {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-primary);
   }
-
 }
 
 * {

@@ -20,7 +20,7 @@ export class StorageService {
       const fileExt = file.name.split('.').pop()
       const filePath = fileName ? `${fileName}.${fileExt}` : `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
 
-      const { data, error } = await supabase.storage.from(bucket).upload(filePath, file, {
+      const { error } = await supabase.storage.from(bucket).upload(filePath, file, {
         cacheControl: '3600',
         upsert: false,
       })

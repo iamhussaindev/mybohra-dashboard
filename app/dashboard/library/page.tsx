@@ -5,9 +5,10 @@ import DashboardLayout from '@components/layout/DashboardLayout'
 import LibraryForm from '@components/library/LibraryForm'
 import LibraryList from '@components/library/LibraryList'
 import LibraryMiqaatsModal from '@components/library/LibraryMiqaatsModal'
+import { LibraryService } from '@lib/api/library'
 import { IconMusic, IconPlus } from '@tabler/icons-react'
 import { Library } from '@type/library'
-import { Button } from 'antd'
+import { Button, message } from 'antd'
 import { useState } from 'react'
 
 function LibraryManagement() {
@@ -20,11 +21,6 @@ function LibraryManagement() {
 
   const handleCreateLibrary = () => {
     setEditingLibrary(null)
-    setShowForm(true)
-  }
-
-  const handleEditLibrary = (library: Library) => {
-    setEditingLibrary(library)
     setShowForm(true)
   }
 
@@ -49,8 +45,14 @@ function LibraryManagement() {
     setSelectedLibrary(null)
   }
 
-  const handleDeleteLibrary = (id: number) => {
+  const handleDeleteLibrary = async (id: number) => {
     setRefreshKey(prev => prev + 1)
+    try {
+      await LibraryService.delete(id)
+      message.success('Library item deleted successfully')
+    } catch {
+      message.error('Failed to delete library item')
+    }
   }
 
   return (
@@ -65,7 +67,7 @@ function LibraryManagement() {
         </Button>,
       ]}>
       {/* Library List */}
-      <LibraryList key={refreshKey} searchQuery={searchQuery} onEditLibrary={handleEditLibrary} onDeleteLibrary={handleDeleteLibrary} onViewMiqaats={handleViewMiqaats} />
+      <LibraryList key={refreshKey} searchQuery={searchQuery} onDeleteLibrary={handleDeleteLibrary} onViewMiqaats={handleViewMiqaats} />
 
       {/* Library Form Modal */}
       <LibraryForm open={showForm} onClose={handleFormClose} onSuccess={handleFormSuccess} library={editingLibrary} />

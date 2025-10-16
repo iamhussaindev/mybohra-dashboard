@@ -1,6 +1,7 @@
 'use client'
 
 import { useAuth } from '@hooks/useSupabase'
+import { getWhitelistErrorMessage, isEmailWhitelisted } from '@lib/utils/emailWhitelist'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -11,9 +12,10 @@ interface AuthGuardProps {
 }
 
 export default function AuthGuard({ children, fallback, redirectTo = '/login' }: AuthGuardProps) {
-  const { user, loading, isConfigured } = useAuth()
+  const { user, loading, isConfigured, signOut } = useAuth()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
+  const [isCheckingWhitelist, setIsCheckingWhitelist] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -24,6 +26,29 @@ export default function AuthGuard({ children, fallback, redirectTo = '/login' }:
       router.push(redirectTo)
     }
   }, [mounted, loading, user, isConfigured, router, redirectTo])
+
+  // Check if user email is whitelisted
+  useEffect(() => {
+    const checkWhitelist = async () => {
+      if (user && user.email && !isCheckingWhitelist) {
+        setIsCheckingWhitelist(true)
+
+        if (!isEmailWhitelisted(user.email)) {
+          console.warn(`Blocked access for non-whitelisted email: ${user.email}`)
+
+          // Sign out the user
+          await signOut()
+
+          // Redirect to login with error
+          router.push(`/login?error=${encodeURIComponent(getWhitelistErrorMessage())}`)
+        }
+
+        setIsCheckingWhitelist(false)
+      }
+    }
+
+    checkWhitelist()
+  }, [user, signOut, router, isCheckingWhitelist])
 
   // Show loading state
   if (!mounted || loading) {

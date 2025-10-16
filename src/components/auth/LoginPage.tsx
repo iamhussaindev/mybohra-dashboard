@@ -1,7 +1,7 @@
 'use client'
 
 import { useAuth } from '@hooks/useSupabase'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 export default function LoginPage() {
@@ -13,6 +13,7 @@ export default function LoginPage() {
 
   const { user, signIn, signUp, isConfigured } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -27,6 +28,14 @@ export default function LoginPage() {
       setError('Supabase is not configured. Please check your environment variables.')
     }
   }, [isConfigured])
+
+  // Check for error in URL params (from OAuth callback)
+  useEffect(() => {
+    const errorParam = searchParams.get('error')
+    if (errorParam) {
+      setError(decodeURIComponent(errorParam))
+    }
+  }, [searchParams])
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,10 +65,10 @@ export default function LoginPage() {
 
     try {
       const { supabase } = await import('@lib/config/supabase')
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/api/auth/callback`,
         },
       })
 
@@ -94,7 +103,7 @@ export default function LoginPage() {
               <div className="bg-gray-50 p-4 rounded-lg text-left">
                 <pre className="text-sm text-gray-700">
                   {`NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key`}
+                  \nNEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key`}
                 </pre>
               </div>
             </div>
@@ -232,7 +241,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key`}
 
         {/* Footer */}
         <div className="text-center mt-8">
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 text-sm mb-2">
             By signing in, you agree to our{' '}
             <a href="#" className="text-blue-600 hover:text-blue-500 transition-colors duration-200">
               Terms of Service
@@ -242,6 +251,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key`}
               Privacy Policy
             </a>
           </p>
+          <p className="text-gray-400 text-xs">🔒 This application uses email whitelisting for enhanced security</p>
         </div>
       </div>
     </div>

@@ -131,6 +131,19 @@ The application uses a modern design system with:
 - **Modern Styling**: Clean, professional appearance
 - **Interactive Elements**: Hover effects, transitions, and animations
 
+## 📚 Documentation
+
+Comprehensive documentation is available in the [`/docs`](./docs) folder:
+
+- **[Quick Setup Guide](./docs/QUICK_SETUP.md)** - Get started quickly
+- **[Schema Sync Guide](./docs/SCHEMA_SYNC_GUIDE.md)** - Automatic type generation
+- **[Storage Setup](./docs/STORAGE_SETUP.md)** - Configure storage buckets
+- **[Email Whitelist Authentication](./docs/AUTH_WHITELIST.md)** - Configure OAuth whitelist
+- **[Location Module](./docs/LOCATION_MODULE.md)** - Location management guide
+- **[Miqaat Module](./docs/MIQAAT_SETUP_GUIDE.md)** - Islamic calendar dates setup
+
+See the [documentation index](./docs/README.md) for a complete list of guides.
+
 ## 🚀 Deployment
 
 The application is ready for deployment on platforms like Vercel, Netlify, or any Node.js hosting service.

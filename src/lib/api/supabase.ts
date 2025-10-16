@@ -172,7 +172,12 @@ export const realtimeService = {
       throw new Error('Supabase is not configured. Please check your environment variables.')
     }
 
-    return supabase.channel(`${table}_changes`).on('postgres_changes', { event, schema: 'public', table }, callback).subscribe()
+    const channel = supabase
+      .channel(`${table}_changes`)
+      .on('postgres_changes' as any, { event, schema: 'public', table }, callback)
+      .subscribe()
+
+    return channel
   },
 
   // Unsubscribe from channel

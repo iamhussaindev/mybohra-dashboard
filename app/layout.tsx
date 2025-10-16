@@ -1,3 +1,4 @@
+import AntdConfigProvider from '@components/providers/AntdConfigProvider'
 import Cursor from '@components/ui/atoms/Cursor'
 import ToastContainer from '@components/ui/molecules/ToastContainer'
 import { Metadata } from 'next'
@@ -13,6 +14,32 @@ const satoshi = localFont({
 const clashDisplay = localFont({
   src: '../assets/fonts/ClashDisplay-Variable.woff2',
   variable: '--font-clash-display',
+})
+
+const cf = localFont({
+  src: [
+    {
+      path: '../assets/fonts/cf-regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/cf-medium.woff2',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/cf-semibold.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../assets/fonts/cf-bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-cf',
 })
 
 export const metadata: Metadata = {
@@ -54,12 +81,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="icon" href="/favicon.ico" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
-      <body suppressHydrationWarning className={`${satoshi.variable} ${clashDisplay.variable} relative`}>
-        <Cursor />
-        <Suspense fallback={<div>Loading...</div>}>
-          <ToastContainer />
-          {children}
-        </Suspense>
+      <body suppressHydrationWarning className={`${satoshi.variable} ${clashDisplay.variable} ${cf.variable} relative`}>
+        <AntdConfigProvider>
+          <Cursor />
+          <Suspense fallback={<div>Loading...</div>}>
+            <ToastContainer />
+            {children}
+          </Suspense>
+        </AntdConfigProvider>
       </body>
     </html>
   )

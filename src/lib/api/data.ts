@@ -31,6 +31,7 @@ export class DataService {
         return existingData
       }
     } catch (error) {
+      console.error(error)
       // If data doesn't exist, create it
       console.log(`Data with key "${key}" not found, creating new entry`)
     }

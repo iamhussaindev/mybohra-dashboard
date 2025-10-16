@@ -14,7 +14,6 @@ interface FileUploadProps {
 
 export default function FileUpload({ onFileSelect, accept, maxSize = 50, type, className = '', disabled = false }: FileUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false)
-  const [uploading, setUploading] = useState(false)
 
   const handleDragOver = useCallback(
     (e: React.DragEvent) => {

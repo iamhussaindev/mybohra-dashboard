@@ -101,7 +101,7 @@ const MiqaatForm = ({ open, onClose, onSuccess, miqaat }: MiqaatFormProps) => {
         </Button>,
       ]}>
       <Form form={form} layout="vertical" onFinish={handleSubmit} className="mt-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter the miqaat name' }]}>
             <Input placeholder="Enter miqaat name" />
           </Form.Item>
@@ -151,7 +151,7 @@ const MiqaatForm = ({ open, onClose, onSuccess, miqaat }: MiqaatFormProps) => {
 
         <Divider>Additional Information</Divider>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           <Form.Item
             name="location"
             label={
@@ -165,17 +165,18 @@ const MiqaatForm = ({ open, onClose, onSuccess, miqaat }: MiqaatFormProps) => {
 
           <Form.Item
             name="priority"
+            style={{ width: '100%' }}
             label={
               <Space>
                 <IconClock className="h-4 w-4 text-orange-500" />
                 Priority
               </Space>
             }>
-            <InputNumber placeholder="Enter priority (0-100)" min={0} max={100} className="w-full" />
+            <InputNumber placeholder="Enter priority (0-100)" min={0} max={100} style={{ width: '100%' }} />
           </Form.Item>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
           <Form.Item
             name="phase"
             label={

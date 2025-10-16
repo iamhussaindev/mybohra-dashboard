@@ -163,12 +163,15 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
   }
 
   const handleItemSelect = (item: Library) => {
+    console.log('handleItemSelect called with item:', item.id)
     setSelectedItem(item)
     setEditingItem({ ...item })
     setSidebarVisible(true)
+    console.log('sidebarVisible set to true')
   }
 
   const handleSidebarClose = () => {
+    console.log('handleSidebarClose')
     setSidebarVisible(false)
     setSelectedItem(null)
     setEditingItem({})
@@ -444,10 +447,7 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
         const dragState = dragStates[record.id] || { isDragOver: false, dragCounter: 0 }
         return (
           <div
-            className={`cursor-pointer transition-all duration-200 ${
-              dragState.isDragOver ? 'bg-blue-50 border border-blue-300 rounded' : selectedItem?.id === record.id ? 'rounded' : 'hover:bg-gray-50 rounded'
-            }`}
-            onClick={() => handleItemSelect(record)}
+            className={`transition-all duration-200 ${dragState.isDragOver ? 'bg-blue-50 border border-blue-300 rounded' : selectedItem?.id === record.id ? 'rounded' : 'hover:bg-gray-50 rounded'}`}
             onDragEnter={e => handleDragEnter(record.id, e)}
             onDragLeave={e => handleDragLeave(record.id, e)}
             onDragOver={handleDragOver}
@@ -568,7 +568,7 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
   return (
     <div className="flex h-screen ">
       {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300`}>
+      <div className={`flex-1 transition-all duration-300 ${sidebarVisible ? 'w-[calc(100%-400px)]' : 'w-full'}`}>
         <div className="space-y-6 h-full overflow-auto">
           <div className="bg-white/80 overflow-hidden">
             <Table
@@ -581,7 +581,7 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
                 onClick: () => handleItemSelect(record),
                 style: {
                   cursor: 'pointer',
-                  backgroundColor: record.id === selectedItem?.id ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
+                  backgroundColor: record.id === selectedItem?.id ? 'rgb(255, 199, 199)' : 'transparent',
                 },
               })}
               loading={loading}

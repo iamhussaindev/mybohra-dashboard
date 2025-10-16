@@ -1,7 +1,7 @@
 'use client'
 
-import { SupabaseService, authService } from '@/lib/api/supabase'
-import { isSupabaseConfigured } from '@/lib/config/supabase'
+import { SupabaseService, authService } from '@lib/api/supabase'
+import { isSupabaseConfigured } from '@lib/config/supabase'
 import { useEffect, useState } from 'react'
 
 interface Project {
@@ -30,7 +30,7 @@ export default function SupabaseExample() {
       try {
         const currentUser = await authService.getCurrentUser()
         setUser(currentUser)
-      } catch (err) {
+      } catch {
         console.log('No user logged in')
       }
     }
@@ -161,7 +161,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key`}
         <div className="bg-gray-50 p-4 rounded">
           <h4 className="font-semibold mb-2">Projects ({projects.length})</h4>
           {projects.length === 0 ? (
-            <p className="text-gray-500">No projects found. Click "Add Project" to create one.</p>
+            <p className="text-gray-500">No projects found. Click &quot;Add Project&quot; to create one.</p>
           ) : (
             <ul className="space-y-2">
               {projects.map(project => (
@@ -179,7 +179,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key`}
       {/* Instructions */}
       <div className="text-sm text-gray-600">
         <p className="mb-2">
-          <strong>Note:</strong> This example assumes you have a 'projects' table in your Supabase database.
+          <strong>Note:</strong> This example assumes you have a &apos;projects&apos; table in your Supabase database.
         </p>
         <p>
           Check the <code>SUPABASE_SETUP.md</code> file for complete setup instructions.

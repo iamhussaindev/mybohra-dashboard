@@ -12,7 +12,7 @@ interface DataTableProps {
   className?: string
 }
 
-export function DataTable({ onDataEdit, onDataDelete, className }: DataTableProps) {
+export function DataTable({ onDataEdit, className }: DataTableProps) {
   const [data, setData] = useState<Data[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

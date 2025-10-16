@@ -109,7 +109,6 @@ export const useCustomCursor = () => {
   useEffect(() => {
     const scrambleText = gsap.utils.toArray('[data-scramble]') as HTMLElement[]
     scrambleText.forEach((target: HTMLElement) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       target.addEventListener('pointerover', (event: any) => {
         return scramble(event)
       })
