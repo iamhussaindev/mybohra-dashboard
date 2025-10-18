@@ -1,4 +1,7 @@
-/* @import "antd/dist/reset.css"; */
+/* Define CSS layers for proper ordering */
+@layer antd, tailwind-utilities, custom;
+
+/* Import Tailwind - this will respect the important flag in config */
 @import 'tailwindcss';
 
 /* CF Font Family */
@@ -34,355 +37,431 @@
   font-display: swap;
 }
 
-/* Apply CF font to Ant Design components */
-.ant-input,
-.ant-input-affix-wrapper,
-.ant-input-number,
-.ant-input-textarea,
-.ant-select,
-.ant-select-selector,
-.ant-select-selection-item,
-.ant-select-selection-placeholder,
-.ant-select-dropdown,
-.ant-select-item,
-.ant-select-item-option,
-.ant-select-item-option-content,
-.ant-btn,
-.ant-btn-primary,
-.ant-btn-default,
-.ant-btn-link,
-.ant-modal,
-.ant-modal-title,
-.ant-modal-body,
-.ant-modal-content,
-.ant-modal-header,
-.ant-modal-footer,
-.ant-form,
-.ant-form-item,
-.ant-form-item-label > label,
-.ant-table,
-.ant-table-thead > tr > th,
-.ant-table-tbody > tr > td,
-.ant-table-thead th,
-.ant-table-tbody td,
-.ant-table-cell,
-.ant-table-filter-dropdown,
-.ant-table-filter-dropdown-btns,
-.ant-table-filter-trigger,
-.ant-table-column-sorter,
-.ant-table-column-title,
-.ant-table-pagination,
-.ant-pagination,
-.ant-pagination-item,
-.ant-pagination-item-link,
-.ant-pagination-prev,
-.ant-pagination-next,
-.ant-pagination-jump-prev,
-.ant-pagination-jump-next,
-.ant-pagination-options,
-.ant-pagination-options-size-changer,
-.ant-pagination-options-quick-jumper,
-.ant-tag,
-.ant-badge,
-.ant-dropdown,
-.ant-dropdown-menu,
-.ant-dropdown-menu-item,
-.ant-dropdown-menu-title-content,
-.ant-menu,
-.ant-menu-item,
-.ant-menu-submenu-title,
-.ant-popconfirm,
-.ant-popconfirm-message,
-.ant-popconfirm-buttons,
-.ant-message,
-.ant-notification,
-.ant-notification-notice-message,
-.ant-notification-notice-description,
-.ant-drawer,
-.ant-drawer-header,
-.ant-drawer-title,
-.ant-drawer-body,
-.ant-card,
-.ant-card-head,
-.ant-card-head-title,
-.ant-card-body,
-.ant-tabs,
-.ant-tabs-tab,
-.ant-tabs-tab-btn,
-.ant-tooltip,
-.ant-tooltip-inner,
-.ant-popover,
-.ant-popover-inner,
-.ant-popover-inner-content,
-.ant-checkbox-wrapper,
-.ant-radio-wrapper,
-.ant-switch,
-.ant-slider,
-.ant-steps,
-.ant-steps-item-title,
-.ant-steps-item-description,
-.ant-upload,
-.ant-upload-text,
-.ant-calendar,
-.ant-picker,
-.ant-picker-input > input,
-.ant-descriptions,
-.ant-descriptions-item-label,
-.ant-descriptions-item-content,
-.ant-empty-description,
-.ant-spin-text,
-.ant-result-title,
-.ant-result-subtitle {
-  font-family: 'CF', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-}
-
-/* Specific font weights for different components */
-.ant-btn {
-  font-weight: 500 !important;
-}
-
-.ant-table-thead > tr > th,
-.ant-form-item-label > label {
-  font-weight: 500 !important;
-}
-
-.ant-modal-title,
-.ant-drawer-title,
-.ant-card-head-title {
-  font-weight: 600 !important;
-}
-
-.ant-btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.shadow-box {
-  box-shadow: 0 1px 2px 0 rgb(0 0 0/0.05);
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  cursor: pointer;
-  transition-property: border-color, box-shadow, background-color;
-  transition-duration: 0.3s;
-  overflow: hidden;
-}
-
-:root {
-  --text-color: #000000;
-  --backdrop: hsla(0, 0%, 100%, 0.8);
-  --text-primary: #000000;
-  --text-secondary: #d1d5db;
-  --text-primary: #0a0219;
-  --text-secondary: #0a0a0a;
-  --text-inverse: #f7f8fa;
-  --highlight: #f26419;
-  --bg-600: #cbd5e1;
-  --bg-700: #e2e8f0;
-  --bg-800: #fff;
-  --bg-900: #f7f8fa;
-  --backdrop: hsla(0, 0%, 100%, 0.8);
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
-  --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 240 10% 3.9%;
-  --radius: 0.5rem;
-  --font-cf: 'CF', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  color-scheme: light dark;
-  color: var(--text-color);
-  background-color: var(--background-color);
-  font-family: var(--font-cf);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  border-color: var(--bg-700);
-}
-
-.dark {
-  --text-primary: #f6f7ff;
-  --text-secondary: #a9a9bd;
-  --text-inverse: #0b0b0d;
-  --highlight: #f26419;
-  --bg-600: #2c2c35;
-  --bg-700: #1e1e27;
-  --bg-800: #111116;
-  --bg-900: #0b0b0d;
-  --backdrop: rgba(11, 11, 13, 0.8);
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 0 0% 98%;
-  --primary-foreground: 240 5.9% 10%;
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
-  --toastify-font-family: var(--font-cf);
-}
-
-/* disable mobile for now */
-
-.dark {
-  --background-color: #000000;
-  --text-color: #ffffff;
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-  mix-blend-mode: normal;
-  animation: none;
-  mask-image: none;
-  -webkit-mask-image: none;
-}
-
-::view-transition-group(root) {
-  transition: none;
-}
-
-.cursor,
-.cursor-tail {
-  opacity: 0;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-cf);
-  font-weight: 600;
-}
-
-/* Override Ant Design h element margins */
-.ant-typography h1,
-.ant-typography h2,
-.ant-typography h3,
-.ant-typography h4,
-.ant-typography h5,
-.ant-typography h6,
-.ant-modal-title,
-.ant-card-head-title,
-.ant-page-header-heading-title {
-  margin-bottom: 0 !important;
-}
-
-.font-clash-display {
-  font-family: var(--font-clash-display);
-}
-
-.font-cf {
-  font-family: var(--font-cf);
-}
-
-.text-highlight-primary {
-  color: var(--highlight);
-}
-
-.text-secondary {
-  color: var(--text-secondary);
-}
-
-.text-primary {
-  color: var(--text-primary);
-}
-
-.text-highlight-secondary {
-  color: var(--highlight);
-}
-
-.bg-highlight {
-  background-color: var(--highlight);
-}
-
-.transition-colors {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 0.15s;
-}
-
-.subtitle {
-  word-spacing: 0.125rem;
-  letter-spacing: 0.05rem;
-  color: var(--highlight);
-}
-
-.shimmer {
-  font-weight: 500;
-  background: currentColor -webkit-gradient(linear, 100% 0, 0 0, from(#fff), color-stop(0.5, #fff), to(#fff));
-  background-position: -4rem top;
-  background-repeat: no-repeat;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: shimmer 2.2s infinite;
-  background-size: 4rem 100%;
-  -webkit-text-fill-color: transparent;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -4rem top;
+/* Wrap Ant Design custom styles in a layer with lower priority */
+@layer antd {
+  /* Apply CF font to Ant Design components */
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-number,
+  .ant-input-textarea,
+  .ant-select,
+  .ant-select-selector,
+  .ant-select-selection-item,
+  .ant-select-selection-placeholder,
+  .ant-select-dropdown,
+  .ant-select-item,
+  .ant-select-item-option,
+  .ant-select-item-option-content,
+  .ant-btn,
+  .ant-btn-primary,
+  .ant-btn-default,
+  .ant-btn-link,
+  .ant-modal,
+  .ant-modal-title,
+  .ant-modal-body,
+  .ant-modal-content,
+  .ant-modal-header,
+  .ant-modal-footer,
+  .ant-form,
+  .ant-form-item,
+  .ant-form-item-label > label,
+  .ant-table,
+  .ant-table-thead > tr > th,
+  .ant-table-tbody > tr > td,
+  .ant-table-thead th,
+  .ant-table-tbody td,
+  .ant-table-cell,
+  .ant-table-filter-dropdown,
+  .ant-table-filter-dropdown-btns,
+  .ant-table-filter-trigger,
+  .ant-table-column-sorter,
+  .ant-table-column-title,
+  .ant-table-pagination,
+  .ant-pagination,
+  .ant-pagination-item,
+  .ant-pagination-item-link,
+  .ant-pagination-prev,
+  .ant-pagination-next,
+  .ant-pagination-jump-prev,
+  .ant-pagination-jump-next,
+  .ant-pagination-options,
+  .ant-pagination-options-size-changer,
+  .ant-pagination-options-quick-jumper,
+  .ant-tag,
+  .ant-badge,
+  .ant-dropdown,
+  .ant-dropdown-menu,
+  .ant-dropdown-menu-item,
+  .ant-dropdown-menu-title-content,
+  .ant-menu,
+  .ant-menu-item,
+  .ant-menu-submenu-title,
+  .ant-popconfirm,
+  .ant-popconfirm-message,
+  .ant-popconfirm-buttons,
+  .ant-message,
+  .ant-notification,
+  .ant-notification-notice-message,
+  .ant-notification-notice-description,
+  .ant-drawer,
+  .ant-drawer-header,
+  .ant-drawer-title,
+  .ant-drawer-body,
+  .ant-card,
+  .ant-card-head,
+  .ant-card-head-title,
+  .ant-card-body,
+  .ant-tabs,
+  .ant-tabs-tab,
+  .ant-tabs-tab-btn,
+  .ant-tooltip,
+  .ant-tooltip-inner,
+  .ant-popover,
+  .ant-popover-inner,
+  .ant-popover-inner-content,
+  .ant-checkbox-wrapper,
+  .ant-radio-wrapper,
+  .ant-switch,
+  .ant-slider,
+  .ant-steps,
+  .ant-steps-item-title,
+  .ant-steps-item-description,
+  .ant-upload,
+  .ant-upload-text,
+  .ant-calendar,
+  .ant-picker,
+  .ant-picker-input > input,
+  .ant-descriptions,
+  .ant-descriptions-item-label,
+  .ant-descriptions-item-content,
+  .ant-empty-description,
+  .ant-spin-text,
+  .ant-result-title,
+  .ant-result-subtitle {
+    font-family: 'CF', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+    font-weight: 400 !important;
   }
-  70% {
-    background-position: 12.5rem top;
-  }
-  100% {
-    background-position: 12.5rem top;
-  }
-}
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  width: 100%;
-  font-family: var(--font-cf);
-  background-color: var(--bg-900);
-  overflow-x: hidden;
-  text-rendering: auto;
-  -webkit-font-smoothing: antialiased;
-  font-synthesis-small-caps: none;
-  b {
-    font-weight: 700;
+  /* Specific font weights for emphasis and UI elements */
+  .ant-btn {
+    font-weight: 500 !important;
+  }
+
+  .ant-table-thead > tr > th,
+  .ant-form-item-label > label {
+    font-weight: 500 !important;
+  }
+
+  .ant-modal-title,
+  .ant-drawer-title,
+  .ant-card-head-title {
+    font-weight: 600 !important;
+  }
+
+  a {
+    color: inherit !important;
+  }
+
+  .ant-btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .shadow-box {
+    box-shadow: 0 1px 2px 0 rgb(0 0 0/0.05);
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    transition-property: border-color, box-shadow, background-color;
+    transition-duration: 0.3s;
+    overflow: hidden;
+  }
+
+  :root {
+    --text-color: #000000;
+    --backdrop: hsla(0, 0%, 100%, 0.8);
+    --text-primary: #000000;
+    --text-secondary: #d1d5db;
+    --text-primary: #0a0219;
+    --text-secondary: #0a0a0a;
+    --text-inverse: #f7f8fa;
+    --highlight: #f26419;
+    --bg-600: #cbd5e1;
+    --bg-700: #e2e8f0;
+    --bg-800: #fff;
+    --bg-900: #f7f8fa;
+    --backdrop: hsla(0, 0%, 100%, 0.8);
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+    --radius: 0.5rem;
+    --font-cf: 'CF', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    color-scheme: light dark;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    font-family: var(--font-cf);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    border-color: var(--bg-700);
+  }
+
+  .dark {
+    --text-primary: #f6f7ff;
+    --text-secondary: #a9a9bd;
+    --text-inverse: #0b0b0d;
+    --highlight: #f26419;
+    --bg-600: #2c2c35;
+    --bg-700: #1e1e27;
+    --bg-800: #111116;
+    --bg-900: #0b0b0d;
+    --backdrop: rgba(11, 11, 13, 0.8);
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    --toastify-font-family: var(--font-cf);
+  }
+
+  /* disable mobile for now */
+
+  .dark {
+    --background-color: #000000;
+    --text-color: #ffffff;
+  }
+
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    mix-blend-mode: normal;
+    animation: none;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
+  ::view-transition-group(root) {
+    transition: none;
+  }
+
+  .cursor,
+  .cursor-tail {
+    opacity: 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-cf);
+    font-weight: 500;
+  }
+
+  /* Override Ant Design h element margins */
+  .ant-typography h1,
+  .ant-typography h2,
+  .ant-typography h3,
+  .ant-typography h4,
+  .ant-typography h5,
+  .ant-typography h6,
+  .ant-modal-title,
+  .ant-card-head-title,
+  .ant-page-header-heading-title {
+    margin-bottom: 0 !important;
+  }
+
+  .font-clash-display {
+    font-family: var(--font-clash-display);
+  }
+
+  .font-cf {
+    font-family: var(--font-cf);
+  }
+
+  .text-highlight-primary {
+    color: var(--highlight);
+  }
+
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+
+  .text-primary {
     color: var(--text-primary);
   }
-}
 
-* {
-  user-select: none !important;
-}
+  .text-highlight-secondary {
+    color: var(--highlight);
+  }
 
-/* Hide scrollbar */
-::-webkit-scrollbar {
-  display: none;
-}
+  .bg-highlight {
+    background-color: var(--highlight);
+  }
 
-p {
-  margin-bottom: 0;
-}
+  .transition-colors {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 0.15s;
+  }
+
+  .subtitle {
+    word-spacing: 0.125rem;
+    letter-spacing: 0.05rem;
+    color: var(--highlight);
+  }
+
+  .shimmer {
+    font-weight: 500;
+    background: currentColor -webkit-gradient(linear, 100% 0, 0 0, from(#fff), color-stop(0.5, #fff), to(#fff));
+    background-position: -4rem top;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: shimmer 2.2s infinite;
+    background-size: 4rem 100%;
+    -webkit-text-fill-color: transparent;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -4rem top;
+    }
+    70% {
+      background-position: 12.5rem top;
+    }
+    100% {
+      background-position: 12.5rem top;
+    }
+  }
+
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    width: 100%;
+    font-family: var(--font-cf);
+    font-weight: 400;
+    background-color: var(--bg-900);
+    overflow-x: hidden;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    font-synthesis-small-caps: none;
+    b {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+
+  * {
+    user-select: none !important;
+  }
+
+  /* Hide scrollbar */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+
+  p {
+    margin-bottom: 0;
+  }
+
+  /* Modern Calendar Styles */
+  .search-modal .ant-modal-content {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+
+  .search-modal .ant-modal-header {
+    display: none;
+  }
+
+  .search-modal .ant-modal-body {
+    padding: 0;
+  }
+} /* End of @layer antd */
+
+/* Custom utilities - these will have higher priority than Ant Design */
+@layer custom {
+  /* Line clamp utility */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  /* Calendar cell animations */
+  .calendar-cell {
+    transition: all 0.2s ease-in-out;
+  }
+
+  .calendar-cell:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Modern gradient backgrounds */
+  .gradient-bg {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .gradient-bg-warm {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  }
+
+  .gradient-bg-cool {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  }
+} /* End of @layer custom */

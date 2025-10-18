@@ -6,6 +6,7 @@ import {
   IconCode,
   IconDashboard,
   IconDeviceMobile,
+  IconDragDrop,
   IconFolder,
   IconListTree,
   IconLocation,
@@ -49,6 +50,11 @@ const sidebarSections: SidebarSection[] = [
         href: '/dashboard/admin-calendar',
         icon: IconCalendar,
       },
+      {
+        name: 'Assign Duas',
+        href: '/dashboard/assign-duas',
+        icon: IconDragDrop,
+      },
       { name: 'Locations', href: '/dashboard/location', icon: IconLocation },
       { name: 'Devices', href: '/dashboard/devices', icon: IconDeviceMobile },
     ],
@@ -89,7 +95,7 @@ export default function Sidebar() {
     const current = item.href === pathname
 
     return (
-      <li key={item.name}>
+      <li key={item.name} className={classNames('rounded-md hover:bg-gray-50 hover:text-primary-600', current ? 'bg-gray-100 text-black' : 'text-black/90')}>
         <a href={item.href} className={classNames(current ? 'bg-gray-100 text-black' : 'text-black/90 hover:bg-gray-50 hover:text-primary-600', 'group flex gap-x-3 rounded-md p-2 text-sm')}>
           <item.icon aria-hidden="true" className={classNames(current ? 'text-black' : 'text-black/90 group-hover:text-black', 'h-5 w-5 shrink-0')} />
           {item.name}

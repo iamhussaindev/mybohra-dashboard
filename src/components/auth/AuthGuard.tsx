@@ -15,7 +15,6 @@ export default function AuthGuard({ children, fallback, redirectTo = '/login' }:
   const { user, loading, isConfigured, signOut } = useAuth()
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
-  const [isCheckingWhitelist, setIsCheckingWhitelist] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -30,9 +29,7 @@ export default function AuthGuard({ children, fallback, redirectTo = '/login' }:
   // Check if user email is whitelisted
   useEffect(() => {
     const checkWhitelist = async () => {
-      if (user && user.email && !isCheckingWhitelist) {
-        setIsCheckingWhitelist(true)
-
+      if (user && user.email) {
         if (!isEmailWhitelisted(user.email)) {
           console.warn(`Blocked access for non-whitelisted email: ${user.email}`)
 
@@ -42,13 +39,11 @@ export default function AuthGuard({ children, fallback, redirectTo = '/login' }:
           // Redirect to login with error
           router.push(`/login?error=${encodeURIComponent(getWhitelistErrorMessage())}`)
         }
-
-        setIsCheckingWhitelist(false)
       }
     }
 
     checkWhitelist()
-  }, [user, signOut, router, isCheckingWhitelist])
+  }, [user?.email, signOut, router])
 
   // Show loading state
   if (!mounted || loading) {

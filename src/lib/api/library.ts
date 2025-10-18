@@ -1,5 +1,5 @@
 import { supabase } from '@lib/config/supabase'
-import { CreateLibraryRequest, Library, LibraryFilters, LibrarySearchResult, UpdateLibraryRequest } from '@type/library'
+import { CreateLibraryRequest, Library, LibraryFilters, UpdateLibraryRequest } from '@type/library'
 
 export class LibraryService {
   static async getAll(filters?: LibraryFilters): Promise<Library[]> {
@@ -51,13 +51,16 @@ export class LibraryService {
     if (error) throw error
   }
 
-  static async search(query: string, limit: number = 50): Promise<LibrarySearchResult[]> {
+  static async search(query: string, limit: number = 50): Promise<Library[]> {
     const { data, error } = await supabase.rpc('search_library', {
       p_query: query,
       p_limit: limit,
     })
 
-    if (error) throw error
+    if (error) {
+      console.error('Library search error:', error)
+      throw error
+    }
     return data || []
   }
 

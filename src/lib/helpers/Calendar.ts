@@ -1,4 +1,5 @@
 import { momentTime } from '@lib/utils'
+import { DailyDuaWithLibrary } from '@type/dailyDua'
 import { Miqaat } from '@type/miqaat'
 import moment from 'moment'
 
@@ -20,6 +21,8 @@ export interface CalendarDay {
   filler: boolean
   hasMiqaats: boolean
   miqaats?: Miqaat[]
+  hasDailyDuas: boolean
+  dailyDuas?: DailyDuaWithLibrary[]
 }
 
 export class Calendar {
@@ -30,14 +33,16 @@ export class Calendar {
   iso8601 = false
   date: HijriDate
   miqaats: Miqaat[] = []
+  dailyDuas: DailyDuaWithLibrary[] = []
 
-  constructor({ year, month, iso8601, miqaats }: { year?: number; month?: number; iso8601?: boolean; miqaats?: Miqaat[] }) {
+  constructor({ year, month, iso8601, miqaats, dailyDuas }: { year?: number; month?: number; iso8601?: boolean; miqaats?: Miqaat[]; dailyDuas?: DailyDuaWithLibrary[] }) {
     const now = new HijriDate()
     this.year = year ?? now.year
     this.month = month ?? now.month
     this.iso8601 = iso8601 || false
     this.date = new HijriDate(year, month, 1)
     this.miqaats = miqaats ?? []
+    this.dailyDuas = dailyDuas ?? []
   }
 
   dayOfWeek(day: number): number {
@@ -53,6 +58,7 @@ export class Calendar {
     isToday: true,
     filler: false,
     hasMiqaats: false,
+    hasDailyDuas: false,
   }
 
   days(): CalendarDay[] {
@@ -61,7 +67,19 @@ export class Calendar {
       const date = new HijriDate(this.year, this.month, day)
 
       const hasMiqaats = this.miqaats.some(miqaat => {
-        return miqaat.date === date.day && miqaat.month === date.month
+        const matches = miqaat.date === date.day && miqaat.month === date.month
+        if (matches) {
+          console.log(`Found miqaat match: ${miqaat.name} on ${date.day}/${date.month}`)
+        }
+        return matches
+      })
+
+      const hasDailyDuas = this.dailyDuas.some(dailyDua => {
+        const matches = dailyDua.date === date.day && dailyDua.month === date.month
+        if (matches) {
+          console.log(`Found daily dua match: ${dailyDua.library?.name} on ${date.day}/${date.month}`)
+        }
+        return matches
       })
 
       const gregorian = date.toGregorian()
@@ -71,9 +89,10 @@ export class Calendar {
         isCurrentMonth: true,
         isToday: this.getToday.date.day === day && this.getToday.date.month === this.month && this.getToday.date.year === this.year,
         filler: false,
-        dateInArabic: date.toArabic(),
         hasMiqaats,
         miqaats: this.miqaats.filter(miqaat => miqaat.date === date.day && miqaat.month === date.month),
+        hasDailyDuas,
+        dailyDuas: this.dailyDuas.filter(dailyDua => dailyDua.date === date.day && dailyDua.month === date.month),
       }
     })
     return array
@@ -88,6 +107,7 @@ export class Calendar {
       month,
       iso8601: this.iso8601,
       miqaats: this.miqaats,
+      dailyDuas: this.dailyDuas,
     })
   }
 
@@ -100,6 +120,7 @@ export class Calendar {
       month,
       iso8601: this.iso8601,
       miqaats: this.miqaats,
+      dailyDuas: this.dailyDuas,
     })
   }
 
@@ -159,6 +180,7 @@ export class Calendar {
       month: this.month,
       iso8601: this.iso8601,
       miqaats: this.miqaats,
+      dailyDuas: this.dailyDuas,
     })
   }
 
@@ -168,6 +190,7 @@ export class Calendar {
       month: this.month,
       iso8601: this.iso8601,
       miqaats: this.miqaats,
+      dailyDuas: this.dailyDuas,
     })
   }
 

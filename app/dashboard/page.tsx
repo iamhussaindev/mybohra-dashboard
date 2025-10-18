@@ -1,5 +1,6 @@
 'use client'
 
+import AuthGuard from '@components/auth/AuthGuard'
 import DataCard from '@components/dashboard/DataCard'
 import KPICard from '@components/dashboard/KPICard'
 import DashboardLayout from '@components/layout/DashboardLayout'
@@ -43,7 +44,7 @@ function DashboardHome() {
     <DashboardLayout padding="32px">
       {/* KPI Cards */}
       <div className="mb-8 space-y-4">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Key Performance Indicators</h2>
+        <h2 className="text-lg font-medium text-gray-900 mb-4">Key Performance Indicators</h2>
         <Grid className="md:grid-cols-2 lg:grid-cols-5">
           <KPICard title="Total Actions" value={analyticsSummary?.totalActions || 0} icon={IconChartBar} color="bg-blue-500" subtitle="User interactions tracked" />
           <KPICard title="Unique Devices" value={analyticsSummary?.uniqueDevices || 0} icon={IconDeviceMobile} color="bg-green-500" subtitle="Active devices" />
@@ -54,7 +55,7 @@ function DashboardHome() {
 
       {/* Content Statistics */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Content Statistics</h2>
+        <h2 className="text-lg font-medium text-gray-800 mb-4">Content Statistics</h2>
         <Grid className="md:grid-cols-2 lg:grid-cols-5">
           <KPICard title="Tasbeeh Items" value={tasbeehData?.tasbeeh?.length || 0} icon={IconListTree} color="bg-indigo-500" subtitle="Available tasbeeh" />
           <KPICard title="Media Files" value={mediaData?.medias?.length || 0} icon={IconFolder} color="bg-pink-500" subtitle="Audio/video content" />
@@ -65,7 +66,7 @@ function DashboardHome() {
 
       {/* App Data Management */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">App Data Management</h2>
+        <h2 className="text-lg font-medium text-gray-800 mb-4">App Data Management</h2>
         <Grid className="md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <DataCard dataKey={DataKeyEnum.QIYAM} title="Current Qiyam" description="Aqa maula current location" icon={IconMapPin} color="bg-blue-500" />
           <DataCard dataKey={DataKeyEnum.MIQAAT} title="Miqaat List Version" description="Last updated miqaat version" icon={IconCalendar} color="bg-green-500" />
@@ -74,31 +75,14 @@ function DashboardHome() {
           <DataCard dataKey={DataKeyEnum.DUA_LIST} title="Dua List Version" description="Last updated dua version" icon={IconBookmark} color="bg-teal-500" />
         </Grid>
       </div>
-
-      {/* Quick Actions */}
-      <div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <a href="/dashboard/analytics" className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-center">
-            <IconChartBar className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-            <p className="text-sm font-medium text-gray-900">View Analytics</p>
-          </a>
-          <a href="/dashboard/users" className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-center">
-            <IconUsers className="h-8 w-8 mx-auto mb-2 text-green-500" />
-            <p className="text-sm font-medium text-gray-900">Manage Users</p>
-          </a>
-          <a href="/dashboard/library" className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-center">
-            <IconFolder className="h-8 w-8 mx-auto mb-2 text-purple-500" />
-            <p className="text-sm font-medium text-gray-900">Library</p>
-          </a>
-          <a href="/dashboard/miqaats" className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-center">
-            <IconCalendar className="h-8 w-8 mx-auto mb-2 text-orange-500" />
-            <p className="text-sm font-medium text-gray-900">Miqaats</p>
-          </a>
-        </div>
-      </div>
     </DashboardLayout>
   )
 }
 
-export default DashboardHome
+export default function DashboardPage() {
+  return (
+    <AuthGuard>
+      <DashboardHome />
+    </AuthGuard>
+  )
+}

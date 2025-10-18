@@ -337,25 +337,9 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
 
       if (search) {
         const searchResults = await LibraryService.search(search, 50)
-        // Convert LibrarySearchResult to Library format for consistent rendering
-        const searchData: Library[] = searchResults.map(result => ({
-          id: result.id,
-          name: result.name,
-          description: result.description,
-          album: result.album,
-          tags: result.tags,
-          categories: result.categories,
-          audio_url: undefined,
-          pdf_url: undefined,
-          youtube_url: undefined,
-          metadata: undefined,
-          search_text: undefined,
-          search_vector: undefined,
-          created_at: '',
-          updated_at: '',
-        }))
+        // Search now returns full Library objects
         // Sort search results by name (number first, then alphabetically)
-        const sortedSearchData = searchData.sort(sortLibrariesByName)
+        const sortedSearchData = searchResults.sort(sortLibrariesByName)
         setLibraries(sortedSearchData)
         setPagination(prev => ({ ...prev, total: sortedSearchData.length }))
         setHasNextPage(false) // No more pages for search results

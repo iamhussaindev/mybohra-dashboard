@@ -28,7 +28,7 @@ export default function DashboardLayout({ children, padding, showSearch, actions
   const isActive = (href: string) => pathname === href
 
   return (
-    <div className="min-h-screen bg-slate-50 flex relative">
+    <div className="min-h-screen bg-white flex relative">
       <div className="w-[250px] pt-0 pl-0 sticky top-0">
         <Sidebar />
       </div>

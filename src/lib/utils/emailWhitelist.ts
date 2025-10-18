@@ -27,13 +27,24 @@ export function getWhitelistedEmails(): string[] {
 export function isEmailWhitelisted(email: string): boolean {
   const whitelistedEmails = getWhitelistedEmails()
 
+  console.log('📧 Email whitelist check:', {
+    email,
+    whitelistedEmails,
+    whitelistConfigured: whitelistedEmails.length > 0,
+  })
+
   // If no whitelist is configured, block all
   if (whitelistedEmails.length === 0) {
+    console.warn('⚠️ No whitelist configured - blocking all emails')
     return false
   }
 
   const normalizedEmail = email.trim().toLowerCase()
-  return whitelistedEmails.includes(normalizedEmail)
+  const isAllowed = whitelistedEmails.includes(normalizedEmail)
+
+  console.log(`${isAllowed ? '✅' : '❌'} Email ${normalizedEmail} ${isAllowed ? 'is' : 'is NOT'} whitelisted`)
+
+  return isAllowed
 }
 
 /**
@@ -41,6 +52,7 @@ export function isEmailWhitelisted(email: string): boolean {
  */
 export function isWhitelistConfigured(): boolean {
   const allowedEmails = process.env.NEXT_PUBLIC_ALLOWED_EMAILS || process.env.ALLOWED_EMAILS || ''
+  console.log('allowedEmails', allowedEmails)
   return allowedEmails.trim().length > 0
 }
 

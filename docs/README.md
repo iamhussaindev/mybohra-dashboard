@@ -13,6 +13,8 @@ Welcome to the MyBohra Dashboard documentation. This folder contains all the set
 ### 🔐 Authentication & Security
 
 - **[Email Whitelist Authentication](./AUTH_WHITELIST.md)** - Configure email whitelisting for Google OAuth
+- **[Supabase OAuth Setup](./SUPABASE_OAUTH_SETUP.md)** - Step-by-step Google OAuth configuration
+- **[Authentication Troubleshooting](./AUTH_TROUBLESHOOTING.md)** - Debug and fix authentication issues
 
 ### 📅 Module Documentation
 

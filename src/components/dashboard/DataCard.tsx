@@ -74,7 +74,7 @@ const DataCard = ({ dataKey, title, description, icon: Icon, color }: DataCardPr
               <Icon className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">{title}</h3>
+              <h3 className="text-base font-medium text-gray-800 mb-1">{title}</h3>
               <p className="text-xs text-gray-500 leading-relaxed">{description}</p>
             </div>
           </div>

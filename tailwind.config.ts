@@ -1,4 +1,5 @@
 module.exports = {
+  important: true, // Makes all Tailwind utilities !important to override Ant Design
   theme: {
     extend: {
       fontFamily: {
@@ -8,4 +9,7 @@ module.exports = {
     },
   },
   plugins: [],
+  corePlugins: {
+    preflight: true, // Keep Tailwind's base styles
+  },
 }
