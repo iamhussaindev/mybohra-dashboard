@@ -67,7 +67,7 @@ export class Calendar {
       const date = new HijriDate(this.year, this.month, day)
 
       const hasMiqaats = this.miqaats.some(miqaat => {
-        const matches = miqaat.date === date.day && miqaat.month === date.month
+        const matches = miqaat.date === date.day && miqaat.month === date.month + 1
         if (matches) {
           console.log(`Found miqaat match: ${miqaat.name} on ${date.day}/${date.month}`)
         }
@@ -90,7 +90,7 @@ export class Calendar {
         isToday: this.getToday.date.day === day && this.getToday.date.month === this.month && this.getToday.date.year === this.year,
         filler: false,
         hasMiqaats,
-        miqaats: this.miqaats.filter(miqaat => miqaat.date === date.day && miqaat.month === date.month),
+        miqaats: this.miqaats.filter(miqaat => miqaat.date === date.day && miqaat.month === date.month + 1),
         hasDailyDuas,
         dailyDuas: this.dailyDuas.filter(dailyDua => dailyDua.date === date.day && dailyDua.month === date.month),
       }

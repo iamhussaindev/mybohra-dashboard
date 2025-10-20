@@ -439,7 +439,7 @@ const AssignDuasInterface = () => {
             <div>
               {/* Week headers */}
               <div className="grid grid-cols-7 mb-2">
-                {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map(day => (
+                {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
                   <div key={day} className="text-center text-xs font-semibold text-gray-600 py-2">
                     {day}
                   </div>

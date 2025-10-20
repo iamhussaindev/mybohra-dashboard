@@ -43,6 +43,8 @@ const WeekView = ({
         const isShiftSelectStart = shiftSelectStart === dateKey
         const isToday = day.isToday
 
+        console.log(day)
+
         return (
           <div
             onClick={e => {
@@ -145,7 +147,7 @@ const WeekView = ({
   )
 }
 
-const weekDays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
 const AdminCalendar = () => {
   const appContext = App.useApp()

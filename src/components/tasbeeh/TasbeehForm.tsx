@@ -93,48 +93,51 @@ export default function TasbeehForm({ open, onClose, onSuccess, editingTasbeeh }
           </div>
         </div>
       }>
-      <Form form={form} layout="vertical" onFinish={handleSubmit} className="space-y-4">
-        {/* Name */}
-        <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter tasbeeh name' }]}>
-          <Input placeholder="Enter tasbeeh name" />
-        </Form.Item>
+      <Form form={form} layout="vertical" onFinish={handleSubmit}>
+        {/* Row 1: Name and Type */}
+        <div className="grid grid-cols-2 gap-4">
+          <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter tasbeeh name' }]}>
+            <Input placeholder="Enter tasbeeh name" />
+          </Form.Item>
 
-        {/* Type */}
-        <Form.Item name="type" label="Type" rules={[{ required: true, message: 'Please select tasbeeh type' }]}>
-          <Select placeholder="Select tasbeeh type" options={tasbeehTypeOptions} />
-        </Form.Item>
+          <Form.Item name="type" label="Type" rules={[{ required: true, message: 'Please select tasbeeh type' }]}>
+            <Select placeholder="Select tasbeeh type" options={tasbeehTypeOptions} />
+          </Form.Item>
+        </div>
 
-        {/* English/Transliterated Text */}
-        <Form.Item name="text" label="English/Transliterated Text">
-          <Input.TextArea rows={3} placeholder="Enter English or transliterated text" />
-        </Form.Item>
+        {/* Row 2: English Text and Arabic Text */}
+        <div className="grid grid-cols-2 gap-4">
+          <Form.Item name="text" label="English/Transliterated Text">
+            <Input.TextArea rows={4} placeholder="Enter English or transliterated text" />
+          </Form.Item>
 
-        {/* Arabic Text */}
-        <Form.Item name="arabic_text" label="Arabic Text">
-          <Input.TextArea rows={3} placeholder="Enter Arabic text" style={{ direction: 'rtl', textAlign: 'right' }} />
-        </Form.Item>
+          <Form.Item name="arabic_text" label="Arabic Text">
+            <Input.TextArea rows={4} placeholder="Enter Arabic text" style={{ direction: 'rtl', textAlign: 'right' }} />
+          </Form.Item>
+        </div>
 
-        {/* Description */}
+        {/* Row 3: Description (Full Width) */}
         <Form.Item name="description" label="Description">
           <Input.TextArea rows={2} placeholder="Enter description (optional)" />
         </Form.Item>
 
-        {/* Count */}
-        <Form.Item name="count" label="Default Count">
-          <Input type="number" min={0} placeholder="Enter default count" />
-        </Form.Item>
+        {/* Row 4: Count and Image URL */}
+        <div className="grid grid-cols-2 gap-4">
+          <Form.Item name="count" label="Default Count">
+            <Input type="number" min={0} placeholder="Enter default count" />
+          </Form.Item>
 
-        {/* Image URL */}
-        <Form.Item name="image" label="Image URL">
-          <Input placeholder="Enter image URL" prefix={<IconPhoto className="h-4 w-4 text-gray-400" />} />
-        </Form.Item>
+          <Form.Item name="image" label="Image URL">
+            <Input placeholder="Enter image URL" prefix={<IconPhoto className="h-4 w-4 text-gray-400" />} />
+          </Form.Item>
+        </div>
 
-        {/* Audio URL */}
+        {/* Row 5: Audio URL (Full Width) */}
         <Form.Item name="audio" label="Audio URL">
           <Input placeholder="Enter audio URL" prefix={<IconMicrophone className="h-4 w-4 text-gray-400" />} />
         </Form.Item>
 
-        {/* Tags */}
+        {/* Row 6: Tags (Full Width) */}
         <Form.Item label="Tags">
           <div className="space-y-2">
             <Input
@@ -164,7 +167,7 @@ export default function TasbeehForm({ open, onClose, onSuccess, editingTasbeeh }
         </Form.Item>
 
         {/* Submit Button */}
-        <div className="flex justify-end gap-3 pt-4">
+        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
           <Button onClick={onClose}>Cancel</Button>
           <Button type="primary" htmlType="submit" loading={loading}>
             {editingTasbeeh ? 'Update Tasbeeh' : 'Create Tasbeeh'}

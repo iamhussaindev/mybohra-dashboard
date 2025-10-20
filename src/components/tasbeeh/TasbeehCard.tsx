@@ -46,14 +46,10 @@ export default function TasbeehCard({ tasbeeh, onEdit, onDelete }: TasbeehCardPr
 
   const getTypeColor = (type: TasbeehType) => {
     switch (type) {
-      case TasbeehType.DHIKR:
+      case TasbeehType.DEENI:
         return 'green'
-      case TasbeehType.DUA:
+      case TasbeehType.MISC:
         return 'blue'
-      case TasbeehType.SALAWAT:
-        return 'purple'
-      case TasbeehType.QURAN:
-        return 'red'
       case TasbeehType.OTHER:
         return 'gray'
       default:
@@ -63,7 +59,7 @@ export default function TasbeehCard({ tasbeeh, onEdit, onDelete }: TasbeehCardPr
 
   return (
     <Card
-      className="h-full hover:shadow-lg transition-shadow duration-200"
+      className="h-full rounded-none hover:shadow-lg transition-shadow duration-200"
       actions={[
         <Button key="edit" type="text" icon={<IconEdit className="h-4 w-4" />} onClick={() => onEdit(tasbeeh)}>
           Edit

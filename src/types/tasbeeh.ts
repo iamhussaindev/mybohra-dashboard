@@ -1,9 +1,7 @@
 export enum TasbeehType {
-  DHIKR = 'DHIKR',
-  DUA = 'DUA',
-  SALAWAT = 'SALAWAT',
-  QURAN = 'QURAN',
-  OTHER = 'OTHER'
+  DEENI = 'DEENI',
+  MISC = 'MISC',
+  OTHER = 'OTHER',
 }
 
 export interface Tasbeeh {
