@@ -62,5 +62,4 @@ export interface TasbeehSearchResult {
   tags: string[]
   created_at: string
   updated_at: string
-  rank: number
 }

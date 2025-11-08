@@ -97,7 +97,7 @@ export default function Header() {
       </div>
       <nav className="flex w-full items-center sticky top-0 py-4 justify-between px-8 md:hidden z-10">
         <div className="flex w-28 items-center">
-          <img src="/images/icon.png" alt="logo" className="w-8 h-8 mr-4 rounded-full" />
+          <img src="/images/logo.png" alt="logo" className="w-8 h-8 mr-4" />
         </div>
 
         <div className="flex w-28 items-center justify-end space-x-2">
@@ -122,7 +122,7 @@ export default function Header() {
           aria-label="Global"
           className="hidden md:flex outline-none h-[48px] max-w-8xl mx-auto pointer-events-auto w-full items-center justify-between gap-6 rounded-full px-8 py-2 md:px-2 md:py-1 transition-colors sm:pr-4">
           <div className="flex w-28 items-center">
-            <img src="/images/icon.png" alt="logo" className="w-8 h-8 mr-4 rounded-full" />
+            <img src="/images/logo.png" alt="logo" className="w-8 h-8 mr-4" />
           </div>
 
           <div className="w-full items-center justify-center flex">

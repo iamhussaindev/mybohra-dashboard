@@ -67,5 +67,4 @@ export interface LibrarySearchResult {
   album?: AlbumEnum
   tags?: string[]
   categories?: string[]
-  rank: number
 }

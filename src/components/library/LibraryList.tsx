@@ -181,7 +181,17 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
     if (!selectedItem) return
 
     try {
-      await LibraryService.update(selectedItem.id, editingItem)
+      await LibraryService.update(selectedItem.id, {
+        name: editingItem.name,
+        description: editingItem.description,
+        album: editingItem.album,
+        audio_url: editingItem.audio_url,
+        pdf_url: editingItem.pdf_url,
+        youtube_url: editingItem.youtube_url,
+        tags: editingItem.tags,
+        categories: editingItem.categories,
+        metadata: editingItem.metadata,
+      })
       message.success('Item updated successfully')
       loadLibraries(pagination.current, debouncedSearchQuery, filters)
       setSelectedItem({ ...selectedItem, ...editingItem })
@@ -420,6 +430,31 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
     }
   }
 
+  // Helper function to parse tags/categories
+  const parseTagsOrCategories = (value: string[] | string | undefined): string[] => {
+    if (!value) return []
+    if (Array.isArray(value)) return value.filter(Boolean)
+    if (typeof value === 'string') {
+      return value
+        .split(',')
+        .map((item: string) => item.trim())
+        .filter(Boolean)
+    }
+    return []
+  }
+
+  // Helper function to get unique tags from current libraries
+  const getUniqueTags = () => {
+    const allTags = libraries.flatMap(lib => parseTagsOrCategories(lib.tags))
+    return Array.from(new Set(allTags)).sort()
+  }
+
+  // Helper function to get unique categories from current libraries
+  const getUniqueCategories = () => {
+    const allCategories = libraries.flatMap(lib => parseTagsOrCategories(lib.categories))
+    return Array.from(new Set(allCategories)).sort()
+  }
+
   const columns = [
     {
       title: 'Name',
@@ -477,6 +512,13 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
           </div>
         )
       },
+      filters: [
+        { text: 'Available', value: 'available' },
+        { text: 'Not Available', value: 'not_available' },
+      ],
+      onFilter: (value: string, record: Library) => {
+        return value === 'available' ? !!record.audio_url : !record.audio_url
+      },
     },
     {
       title: 'PDF',
@@ -490,28 +532,20 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
         return (
           <div className="text-xs text-gray-700">
             <a href={record.pdf_url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600" onClick={e => e.stopPropagation()}>
-              📄 Open PDF
+              Open PDF
             </a>
           </div>
         )
       },
+      filters: [
+        { text: 'Available', value: 'available' },
+        { text: 'Not Available', value: 'not_available' },
+      ],
+      onFilter: (value: string, record: Library) => {
+        return value === 'available' ? !!record.pdf_url : !record.pdf_url
+      },
     },
-    {
-      title: 'YouTube',
-      key: 'youtube',
-      width: 100,
-      render: (record: Library) => (
-        <div className="text-xs text-gray-700">
-          {record.youtube_url ? (
-            <a href={record.youtube_url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600" onClick={e => e.stopPropagation()}>
-              🎥 YouTube
-            </a>
-          ) : (
-            '-'
-          )}
-        </div>
-      ),
-    },
+
     {
       title: 'Tags',
       dataIndex: 'tags',
@@ -529,6 +563,34 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
 
         return <div className="text-xs text-gray-700">{tagArray?.length > 0 ? tagArray.slice(0, 3).join(', ') + (tagArray.length > 3 ? ` +${tagArray.length - 3}` : '') : '-'}</div>
       },
+      filters: getUniqueTags().map(tag => ({ text: tag, value: tag })),
+      onFilter: (value: string, record: Library) => {
+        const tagArray = parseTagsOrCategories(record.tags)
+        return tagArray.includes(value)
+      },
+    },
+    {
+      title: 'Categories',
+      dataIndex: 'categories',
+      key: 'categories',
+      width: 200,
+      render: (categories: string[] | string) => {
+        const categoryArray = Array.isArray(categories)
+          ? categories
+          : categories
+          ? categories
+              .split(',')
+              .map(cat => cat.trim())
+              .filter(Boolean)
+          : []
+
+        return <div className="text-xs text-gray-700">{categoryArray?.length > 0 ? categoryArray.slice(0, 3).join(', ') + (categoryArray.length > 3 ? ` +${categoryArray.length - 3}` : '') : '-'}</div>
+      },
+      filters: getUniqueCategories().map(category => ({ text: category, value: category })),
+      onFilter: (value: string, record: Library) => {
+        const categoryArray = parseTagsOrCategories(record.categories)
+        return categoryArray.includes(value)
+      },
     },
     {
       title: 'Actions',
@@ -536,14 +598,14 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
       width: 150,
       render: (record: Library) => (
         <div className="text-xs text-gray-700">
-          <span
+          <Button
             className="cursor-pointer hover:text-blue-600"
             onClick={e => {
               e.stopPropagation()
               onViewMiqaats?.(record)
             }}>
-            📅 Miqaats
-          </span>
+            Miqaats
+          </Button>
         </div>
       ),
     },
@@ -770,7 +832,7 @@ const ItemSidebar = ({ item, editingItem, setEditingItem, onClose, onSave, onDel
                     className="hidden"
                     id="audio-upload"
                   />
-                  <Button type="primary" size="small" onClick={() => document.getElementById('audio-upload')?.click()} className="flex-1 text-xs h-6 bg-blue-500 hover:bg-blue-600">
+                  <Button type="primary" size="small" onClick={() => document.getElementById('audio-upload')?.click()} className="flex-1 text-xs h-6 bg-primary hover:bg-primary-600">
                     Replace
                   </Button>
                   <Button type="text" size="small" danger onClick={() => handleDeleteFile('audio')} className="text-xs h-6">
@@ -794,7 +856,7 @@ const ItemSidebar = ({ item, editingItem, setEditingItem, onClose, onSave, onDel
                   className="hidden"
                   id="audio-upload-new"
                 />
-                <Button type="primary" size="small" onClick={() => document.getElementById('audio-upload-new')?.click()} className="w-full text-xs h-6 bg-blue-500 hover:bg-blue-600">
+                <Button type="primary" size="small" onClick={() => document.getElementById('audio-upload-new')?.click()} className="w-full text-xs h-6 bg-primary hover:bg-primary-600">
                   Upload Audio
                 </Button>
               </div>
@@ -822,7 +884,7 @@ const ItemSidebar = ({ item, editingItem, setEditingItem, onClose, onSave, onDel
                     className="hidden"
                     id="pdf-upload"
                   />
-                  <Button type="primary" size="small" onClick={() => document.getElementById('pdf-upload')?.click()} className="flex-1 text-xs h-6 bg-blue-500 hover:bg-blue-600">
+                  <Button type="primary" size="small" onClick={() => document.getElementById('pdf-upload')?.click()} className="flex-1 text-xs h-6 bg-primary hover:bg-primary-600">
                     Replace
                   </Button>
                   <Button type="text" size="small" danger onClick={() => handleDeleteFile('pdf')} className="text-xs h-6">
@@ -846,7 +908,7 @@ const ItemSidebar = ({ item, editingItem, setEditingItem, onClose, onSave, onDel
                   className="hidden"
                   id="pdf-upload-new"
                 />
-                <Button type="primary" size="small" onClick={() => document.getElementById('pdf-upload-new')?.click()} className="w-full text-xs h-6 bg-blue-500 hover:bg-blue-600">
+                <Button type="primary" size="small" onClick={() => document.getElementById('pdf-upload-new')?.click()} className="w-full text-xs h-6 bg-primary hover:bg-primary-600">
                   Upload PDF
                 </Button>
               </div>
@@ -875,7 +937,7 @@ const ItemSidebar = ({ item, editingItem, setEditingItem, onClose, onSave, onDel
 
       {/* Footer Actions */}
       <div className="p-3 border-t border-gray-100 bg-gray-50 space-y-2">
-        <Button type="primary" onClick={onSave} className="w-full bg-gradient-to-r from-blue-500 to-purple-500 border-0 text-sm h-8 hover:shadow-md">
+        <Button type="primary" onClick={onSave} className="w-full bg-gradient-to-r from-primary to-primary-700 border-0 text-sm h-8 hover:shadow-md">
           Save Changes
         </Button>
         <Popconfirm title="Delete this item?" description="This action cannot be undone." onConfirm={onDelete} okText="Delete" cancelText="Cancel">

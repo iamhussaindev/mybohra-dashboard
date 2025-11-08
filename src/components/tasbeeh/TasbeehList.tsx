@@ -2,7 +2,7 @@
 
 import DashboardLayout from '@components/layout/DashboardLayout'
 import { TasbeehService } from '@lib/api/tasbeeh'
-import { IconGridDots, IconList, IconPhoto, IconPlayerPlay, IconPlus, IconVolume } from '@tabler/icons-react'
+import { IconCheck, IconGridDots, IconList, IconPhoto, IconPlayerPlay, IconPlus, IconVolume, IconX } from '@tabler/icons-react'
 import { Tasbeeh, TasbeehType } from '@type/tasbeeh'
 import { App, Button, Empty, Select, Space, Spin, Table, Tag } from 'antd'
 import { useEffect, useState } from 'react'
@@ -18,12 +18,20 @@ export default function TasbeehList() {
   const [allTasbeehs, setAllTasbeehs] = useState<Tasbeeh[]>([])
   const [displayedTasbeehs, setDisplayedTasbeehs] = useState<Tasbeeh[]>([])
   const [loading, setLoading] = useState(false)
+
   const [typeFilter, setTypeFilter] = useState<TasbeehType | undefined>()
+  const [tagFilter, setTagFilter] = useState<string | undefined>()
   const [availableTypes, setAvailableTypes] = useState<TasbeehType[]>([])
+  const [availableTags, setAvailableTags] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<ViewMode>('table')
   const [playingAudio, setPlayingAudio] = useState<number | null>(null)
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
+
+  // Inline editing states
+  const [editingCell, setEditingCell] = useState<{ id: number; field: 'tags' | 'type' } | null>(null)
+  const [editingTags, setEditingTags] = useState<string[]>([])
+  const [editingType, setEditingType] = useState<TasbeehType>()
   const appContext = App.useApp()
   const message = appContext?.message || { error: console.error, success: console.log, warning: console.warn }
   const modal = appContext?.modal
@@ -36,7 +44,7 @@ export default function TasbeehList() {
 
   useEffect(() => {
     loadTasbeehs()
-  }, [refreshKey, searchQuery, typeFilter])
+  }, [refreshKey, searchQuery, typeFilter, tagFilter])
 
   const loadTasbeehs = async () => {
     try {
@@ -46,15 +54,23 @@ export default function TasbeehList() {
       const allData = await TasbeehService.getAll()
       setAllTasbeehs(allData)
 
-      // Extract unique types from the data
+      // Extract unique types and tags from the data
       const uniqueTypes = Array.from(new Set(allData.map(t => t.type)))
       setAvailableTypes(uniqueTypes)
+
+      const allTags = allData.flatMap(t => t.tags || [])
+      const uniqueTags = Array.from(new Set(allTags)).sort()
+      setAvailableTags(uniqueTags)
 
       // Now apply filters
       let filteredData = allData
 
       if (typeFilter) {
         filteredData = filteredData.filter(t => t.type === typeFilter)
+      }
+
+      if (tagFilter) {
+        filteredData = filteredData.filter(t => t.tags?.includes(tagFilter))
       }
 
       if (searchQuery) {
@@ -146,7 +162,34 @@ export default function TasbeehList() {
       dataIndex: 'type',
       key: 'type',
       width: '12%',
-      render: (type: TasbeehType) => <Tag color={getTypeColor(type)}>{type.charAt(0) + type.slice(1).toLowerCase()}</Tag>,
+      render: (type: TasbeehType, record: Tasbeeh) => {
+        const isEditing = editingCell?.id === record.id && editingCell?.field === 'type'
+
+        if (isEditing) {
+          return (
+            <div className="flex items-center gap-1">
+              <Select value={editingType} onChange={setEditingType} size="small" className="flex-1">
+                {availableTypes.map(t => (
+                  <Option key={t} value={t}>
+                    {t.charAt(0) + t.slice(1).toLowerCase()}
+                  </Option>
+                ))}
+              </Select>
+              <Button type="text" size="small" icon={<IconCheck className="h-3 w-3" />} onClick={saveEditing} className="text-green-600" />
+              <Button type="text" size="small" icon={<IconX className="h-3 w-3" />} onClick={cancelEditing} className="text-red-600" />
+            </div>
+          )
+        }
+
+        return (
+          <div className="flex items-center gap-1 group">
+            <Tag color={getTypeColor(type)}>{type.charAt(0) + type.slice(1).toLowerCase()}</Tag>
+            <Button type="text" size="small" className="opacity-0 group-hover:opacity-100 transition-opacity text-xs" onClick={() => startEditing(record.id, 'type', type)}>
+              Edit
+            </Button>
+          </div>
+        )
+      },
     },
     {
       title: 'Text',
@@ -195,17 +238,58 @@ export default function TasbeehList() {
       title: 'Tags',
       dataIndex: 'tags',
       key: 'tags',
-      width: '15%',
-      render: (tags: string[]) => (
-        <div className="flex flex-wrap gap-1">
-          {tags?.slice(0, 2).map((tag, idx) => (
-            <Tag key={idx} color="blue" className="text-xs">
-              {tag}
-            </Tag>
-          ))}
-          {tags?.length > 2 && <span className="text-xs text-gray-500">+{tags.length - 2}</span>}
-        </div>
-      ),
+      width: '20%',
+      render: (tags: string[], record: Tasbeeh) => {
+        const isEditing = editingCell?.id === record.id && editingCell?.field === 'tags'
+
+        if (isEditing) {
+          return (
+            <div className="space-y-2">
+              <div className="flex flex-wrap gap-1">
+                {editingTags.map((tag, idx) => (
+                  <Tag key={idx} color="blue" className="text-xs cursor-pointer" closable onClose={() => removeTag(tag)}>
+                    {tag}
+                  </Tag>
+                ))}
+              </div>
+              <Select
+                size="small"
+                placeholder="Add tags"
+                value={undefined}
+                onChange={value => value && addTag(value)}
+                className="w-full"
+                dropdownMatchSelectWidth={false}
+                dropdownStyle={{ maxHeight: 200, overflow: 'auto' }}>
+                {availableTags.map(tag => (
+                  <Option key={tag} value={tag}>
+                    {tag}
+                  </Option>
+                ))}
+              </Select>
+              <div className="flex gap-1 mt-1">
+                <Button type="text" size="small" icon={<IconCheck className="h-3 w-3" />} onClick={saveEditing} className="text-green-600" />
+                <Button type="text" size="small" icon={<IconX className="h-3 w-3" />} onClick={cancelEditing} className="text-red-600" />
+              </div>
+            </div>
+          )
+        }
+
+        return (
+          <div className="flex items-start gap-1 group">
+            <div className="flex flex-wrap gap-1 flex-1">
+              {tags?.slice(0, 2).map((tag, idx) => (
+                <Tag key={idx} color="blue" className="text-xs">
+                  {tag}
+                </Tag>
+              ))}
+              {tags?.length > 2 && <span className="text-xs text-gray-500">+{tags.length - 2}</span>}
+            </div>
+            <Button type="text" size="small" className="opacity-0 group-hover:opacity-100 transition-opacity text-xs" onClick={() => startEditing(record.id, 'tags', tags || [])}>
+              Edit
+            </Button>
+          </div>
+        )
+      },
     },
     {
       title: 'Actions',
@@ -271,13 +355,61 @@ export default function TasbeehList() {
     setEditingTasbeeh(null)
   }
 
+  // Inline editing functions
+  const startEditing = (id: number, field: 'tags' | 'type', currentValue: string[] | TasbeehType) => {
+    setEditingCell({ id, field })
+    if (field === 'tags') {
+      setEditingTags(currentValue as string[])
+    } else {
+      setEditingType(currentValue as TasbeehType)
+    }
+  }
+
+  const cancelEditing = () => {
+    setEditingCell(null)
+    setEditingTags([])
+    setEditingType(undefined)
+  }
+
+  const saveEditing = async () => {
+    if (!editingCell) return
+
+    try {
+      const updateData: any = {}
+
+      if (editingCell.field === 'tags') {
+        updateData.tags = editingTags
+      } else if (editingCell.field === 'type') {
+        updateData.type = editingType
+      }
+
+      await TasbeehService.update(editingCell.id, updateData)
+      message.success(`${editingCell.field === 'tags' ? 'Tags' : 'Type'} updated successfully`)
+      setRefreshKey(prev => prev + 1)
+      cancelEditing()
+    } catch (error) {
+      console.error('Update error:', error)
+      message.error(`Failed to update ${editingCell.field}`)
+    }
+  }
+
+  const addTag = (tag: string) => {
+    if (tag.trim() && !editingTags.includes(tag.trim())) {
+      setEditingTags([...editingTags, tag.trim()])
+    }
+  }
+
+  const removeTag = (tagToRemove: string) => {
+    setEditingTags(editingTags.filter(tag => tag !== tagToRemove))
+  }
+
   return (
     <DashboardLayout
       title="Tasbeeh Management"
       showSearch={true}
       onSearch={setSearchQuery}
       actions={[
-        <Select key="type-filter" placeholder="All Types" value={typeFilter} onChange={setTypeFilter} allowClear className="w-48">
+        <Select size="small" key="type-filter" placeholder="All Types" value={typeFilter || undefined} onChange={setTypeFilter} allowClear className="w-48">
           {availableTypes.length > 0 ? (
             availableTypes.map(type => {
               const count = allTasbeehs.filter(t => t.type === type).length
@@ -291,6 +423,20 @@ export default function TasbeehList() {
             <Option disabled>No types available</Option>
           )}
         </Select>,
+        <Select size="small" key="tag-filter" placeholder="All Tags" value={tagFilter || undefined} onChange={setTagFilter} allowClear className="w-48">
+          {availableTags.length > 0 ? (
+            availableTags.map(tag => {
+              const count = allTasbeehs.filter(t => t.tags?.includes(tag)).length
+              return (
+                <Option key={tag} value={tag}>
+                  {tag} ({count})
+                </Option>
+              )
+            })
+          ) : (
+            <Option disabled>No tags available</Option>
+          )}
+        </Select>,
         <Button key="add-tasbeeh" type="primary" icon={<IconPlus className="h-5 w-5" />} onClick={handleAddTasbeeh} className="bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700">
           Add Tasbeeh
         </Button>,
@@ -298,7 +444,17 @@ export default function TasbeehList() {
       <div className="space-y-0 h-full">
         {/* Filters */}
         <div className="flex items-center gap-3 bg-white py-2 px-4 border-b border-gray-200">
-          <span className="text-sm font-medium text-gray-700">Filter by type:</span>
+          <span className="text-sm font-medium text-gray-700">Filters:</span>
+          {typeFilter && (
+            <Tag color="blue" closable onClose={() => setTypeFilter(undefined)}>
+              Type: {typeFilter.charAt(0) + typeFilter.slice(1).toLowerCase()}
+            </Tag>
+          )}
+          {tagFilter && (
+            <Tag color="green" closable onClose={() => setTagFilter(undefined)}>
+              Tag: {tagFilter}
+            </Tag>
+          )}
 
           {tasbeehs.length > 0 && (
             <span className="text-sm text-gray-500 ml-auto">

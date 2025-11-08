@@ -12,6 +12,7 @@ export default function AntdConfigProvider({ children }: AntdConfigProviderProps
     <ConfigProvider
       theme={{
         token: {
+          colorPrimary: '#AB0256',
           fontFamily: "var(--font-cf), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
           fontSize: 14,
           fontWeightStrong: 500,

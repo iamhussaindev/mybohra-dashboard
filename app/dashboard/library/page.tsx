@@ -6,7 +6,7 @@ import LibraryForm from '@components/library/LibraryForm'
 import LibraryList from '@components/library/LibraryList'
 import LibraryMiqaatsModal from '@components/library/LibraryMiqaatsModal'
 import { LibraryService } from '@lib/api/library'
-import { IconMusic, IconPlus } from '@tabler/icons-react'
+import { IconPlus } from '@tabler/icons-react'
 import { Library } from '@type/library'
 import { Button, message } from 'antd'
 import { useState } from 'react'
@@ -58,11 +58,10 @@ function LibraryManagement() {
   return (
     <DashboardLayout
       title="Library Management"
-      icon={<IconMusic className="h-8 w-8 text-blue-600" />}
       showSearch={true}
       onSearch={setSearchQuery}
       actions={[
-        <Button key="add-library" type="primary" icon={<IconPlus className="h-5 w-5" />} onClick={handleCreateLibrary} className="bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700">
+        <Button key="add-library" type="primary" icon={<IconPlus className="h-5 w-5" />} onClick={handleCreateLibrary}>
           Add Library Item
         </Button>,
       ]}>

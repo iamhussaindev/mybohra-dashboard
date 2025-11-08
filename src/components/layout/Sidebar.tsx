@@ -45,13 +45,9 @@ const sidebarSections: SidebarSection[] = [
       },
       { name: 'Business', href: '/dashboard/business', icon: IconChartPie },
       { name: 'Miqaats', href: '/dashboard/miqaats', icon: IconCalendar },
+
       {
-        name: 'Admin Calendar',
-        href: '/dashboard/admin-calendar',
-        icon: IconCalendar,
-      },
-      {
-        name: 'Assign Duas',
+        name: 'Daily Duas',
         href: '/dashboard/assign-duas',
         icon: IconDragDrop,
       },

@@ -8,7 +8,7 @@ import { Card, Col, Row, Statistic } from 'antd'
 function AnalyticsContent() {
   return (
     <DashboardLayout showSearch={false}>
-      <div className="space-y-6 w-full">
+      <div className="space-y-6 w-full p-4">
         {/* KPI Cards */}
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} lg={6}>
