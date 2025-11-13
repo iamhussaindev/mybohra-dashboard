@@ -32,7 +32,8 @@ export default function TasbeehForm({ open, onClose, onSuccess, editingTasbeeh }
     }
   }, [open, editingTasbeeh, form])
 
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async () => {
+    const values = form.getFieldsValue()
     try {
       setLoading(true)
 
@@ -93,7 +94,7 @@ export default function TasbeehForm({ open, onClose, onSuccess, editingTasbeeh }
           </div>
         </div>
       }>
-      <Form form={form} layout="vertical" onFinish={handleSubmit}>
+      <Form form={form} layout="vertical">
         {/* Row 1: Name and Type */}
         <div className="grid grid-cols-2 gap-4">
           <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter tasbeeh name' }]}>
@@ -169,7 +170,7 @@ export default function TasbeehForm({ open, onClose, onSuccess, editingTasbeeh }
         {/* Submit Button */}
         <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="primary" htmlType="submit" loading={loading}>
+          <Button onClick={handleSubmit} type="primary" loading={loading}>
             {editingTasbeeh ? 'Update Tasbeeh' : 'Create Tasbeeh'}
           </Button>
         </div>

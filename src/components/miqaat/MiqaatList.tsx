@@ -1,11 +1,12 @@
 import Table from '@components/ui/atoms/Table'
 import { useDebounce } from '@hooks/useDebounce'
 import { MiqaatService } from '@lib/api/miqaat'
+import { supabase } from '@lib/config/supabase'
 import HijriDate from '@lib/helpers/HijriDate'
 import { IconCalendar, IconEdit, IconFilter, IconMapPin, IconSearch, IconTrash } from '@tabler/icons-react'
 import { Miqaat, MiqaatFilters, MiqaatTypeEnum } from '@type/miqaat'
 import { Button, Input, message, Popconfirm, Select, Space, Tag } from 'antd'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react'
 
 interface MiqaatListProps {
   onEditMiqaat?: (miqaat: Miqaat) => void
@@ -25,10 +26,13 @@ const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatLis
     total: 0,
   })
   const [hasMore, setHasMore] = useState(true)
+  const [uploadingId, setUploadingId] = useState<number | null>(null)
 
   // Debounce search query to avoid excessive API calls
   const debouncedSearchQuery = useDebounce(searchQuery, 500)
   const isInitialMount = useRef(true)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const pendingMiqaatRef = useRef<Miqaat | null>(null)
 
   const loadMiqaatsInternal = async (page: number, pageSize: number, append: boolean, currentFilters: MiqaatFilters, searchQuery: string) => {
     try {
@@ -112,6 +116,55 @@ const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatLis
     }
   }
 
+  const handleSelectImage = (miqaat: Miqaat) => {
+    pendingMiqaatRef.current = miqaat
+    fileInputRef.current?.click()
+  }
+
+  const handleUploadImage = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    const selectedMiqaat = pendingMiqaatRef.current
+
+    if (!file || !selectedMiqaat) {
+      event.target.value = ''
+      pendingMiqaatRef.current = null
+      return
+    }
+
+    setUploadingId(selectedMiqaat.id)
+
+    try {
+      const fileExt = file.name.split('.').pop() || file.type.split('/').pop() || 'jpg'
+      const uniqueSuffix = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)
+      const filePath = `${selectedMiqaat.id}/${Date.now()}-${uniqueSuffix}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage.from('miqaat').upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      })
+
+      if (uploadError) {
+        throw uploadError
+      }
+
+      const { data: urlData } = supabase.storage.from('miqaat').getPublicUrl(filePath)
+      const publicUrl = urlData.publicUrl
+
+      await MiqaatService.update(selectedMiqaat.id, { image: publicUrl })
+
+      setMiqaats(prev => prev.map(miqaat => (miqaat.id === selectedMiqaat.id ? { ...miqaat, image: publicUrl } : miqaat)))
+
+      message.success('Image uploaded successfully')
+    } catch (error) {
+      console.error('Image upload error:', error)
+      message.error('Failed to upload image')
+    } finally {
+      setUploadingId(null)
+      pendingMiqaatRef.current = null
+      event.target.value = ''
+    }
+  }
+
   const getTypeColor = (type?: MiqaatTypeEnum) => {
     const colors: Record<string, string> = {
       URS: 'red',
@@ -133,6 +186,23 @@ const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatLis
   }
 
   const columns = [
+    {
+      title: 'Image',
+      dataIndex: 'image',
+      key: 'image',
+      render: (_: string, record: Miqaat) => (
+        <div className="flex items-center gap-3">
+          {record.image ? (
+            <img src={record.image} alt={record.name} className="h-12 w-12 rounded object-cover border border-gray-200" />
+          ) : (
+            <div className="h-12 w-12 rounded border border-dashed border-gray-300 flex items-center justify-center text-xs text-gray-400">No Image</div>
+          )}
+          <Button size="small" onClick={() => handleSelectImage(record)} loading={uploadingId === record.id}>
+            {record.image ? 'Change Image' : 'Upload Image'}
+          </Button>
+        </div>
+      ),
+    },
     {
       title: 'Name',
       dataIndex: 'name',
@@ -256,6 +326,7 @@ const MiqaatList = ({ onEditMiqaat, onDeleteMiqaat, onViewLibraries }: MiqaatLis
           }}
         />
       </div>
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleUploadImage} />
     </div>
   )
 }

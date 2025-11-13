@@ -184,9 +184,6 @@ export default function TasbeehList() {
         return (
           <div className="flex items-center gap-1 group">
             <Tag color={getTypeColor(type)}>{type.charAt(0) + type.slice(1).toLowerCase()}</Tag>
-            <Button type="text" size="small" className="opacity-0 group-hover:opacity-100 transition-opacity text-xs" onClick={() => startEditing(record.id, 'type', type)}>
-              Edit
-            </Button>
           </div>
         )
       },

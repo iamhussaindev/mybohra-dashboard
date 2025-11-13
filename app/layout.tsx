@@ -3,6 +3,7 @@ import Cursor from '@components/ui/atoms/Cursor'
 import ToastContainer from '@components/ui/molecules/ToastContainer'
 import { Metadata } from 'next'
 import localFont from 'next/font/local'
+import { DM_Sans } from 'next/font/google'
 import { Suspense } from 'react'
 import './globals.css'
 
@@ -40,6 +41,13 @@ const cf = localFont({
     },
   ],
   variable: '--font-cf',
+})
+
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-dm-sans',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -81,7 +89,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="icon" href="/favicon.ico" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
-      <body suppressHydrationWarning className={`${satoshi.variable} ${clashDisplay.variable} ${cf.variable} relative`}>
+      <body suppressHydrationWarning className={`${satoshi.variable} ${clashDisplay.variable} ${cf.variable} ${dmSans.variable} relative`}>
         <AntdConfigProvider>
           <Cursor />
           <Suspense fallback={<div>Loading...</div>}>

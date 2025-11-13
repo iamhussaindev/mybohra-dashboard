@@ -28,6 +28,7 @@ export interface Miqaat {
   priority?: number
   important?: boolean
   phase: PhaseEnum
+  image?: string
   created_at: string
   updated_at: string
 }
@@ -44,6 +45,7 @@ export interface CreateMiqaatRequest {
   priority?: number
   important?: boolean
   phase?: PhaseEnum
+  image?: string
 }
 
 export interface UpdateMiqaatRequest {
@@ -58,6 +60,7 @@ export interface UpdateMiqaatRequest {
   priority?: number
   important?: boolean
   phase?: PhaseEnum
+  image?: string
 }
 
 export interface MiqaatFilters {
