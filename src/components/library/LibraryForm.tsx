@@ -1,8 +1,7 @@
-/* eslint-disable react/prop-types */
 import { LibraryService } from '@lib/api/library'
-import { IconFileText, IconFolder, IconMusic, IconTag, IconVideo } from '@tabler/icons-react'
+import { IconFileText, IconMusic, IconTag, IconVideo } from '@tabler/icons-react'
 import { AlbumEnum, CreateLibraryRequest, Library, UpdateLibraryRequest } from '@type/library'
-import { Button, Divider, Form, Input, message, Modal, Select, Space, Tag } from 'antd'
+import { Button, Card, Col, Divider, Form, Input, Modal, Row, Select, Space, Tag, Typography, message } from 'antd'
 import { useEffect, useState } from 'react'
 
 interface LibraryFormProps {
@@ -15,6 +14,7 @@ interface LibraryFormProps {
 const LibraryForm = ({ open, onClose, onSuccess, library }: LibraryFormProps) => {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
+  const { Title, Text } = Typography
 
   useEffect(() => {
     if (open) {
@@ -68,127 +68,155 @@ const LibraryForm = ({ open, onClose, onSuccess, library }: LibraryFormProps) =>
     value: album,
   }))
 
+  if (!open) {
+    return null
+  }
+
   return (
-    <Modal
-      title={library ? 'Edit Library Item' : 'Add New Library Item'}
-      open={open}
-      onCancel={onClose}
-      width={800}
-      destroyOnHidden
-      footer={[
-        <Button key="cancel" onClick={onClose} disabled={loading}>
-          Cancel
-        </Button>,
-        <Button key="submit" type="primary" loading={loading} onClick={() => form.submit()}>
-          {library ? 'Update' : 'Create'}
-        </Button>,
-      ]}>
-      <Form form={form} layout="vertical" onFinish={handleSubmit} className="mt-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-          <Form.Item name="name" label="Name" rules={[{ required: true, message: 'Please enter the name' }]}>
-            <Input placeholder="Enter library item name" />
-          </Form.Item>
+    <Modal open={open} onCancel={onClose} width={760} destroyOnClose maskClosable={false} footer={null} bodyStyle={{ padding: 0 }}>
+      <div style={{ padding: 24 }}>
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <div>
+            <Space direction="vertical" size={4} style={{ width: '100%' }}>
+              <Title level={4} style={{ margin: 0 }}>
+                {library ? 'Edit Library Item' : 'Add New Library Item'}
+              </Title>
+              <Text type="secondary">{library ? 'Update the metadata and media references below.' : 'Provide the details for the new library entry.'}</Text>
+            </Space>
+          </div>
 
-          <Form.Item name="album" label="Album">
-            <Select placeholder="Select album type" allowClear options={albumOptions} />
-          </Form.Item>
-        </div>
+          <Form form={form} layout="vertical" onFinish={handleSubmit} requiredMark={false}>
+            <Card size="small" bodyStyle={{ padding: 16 }} bordered={false} style={{ background: '#fafafa' }}>
+              <Row gutter={16}>
+                <Col xs={24} md={12}>
+                  <Form.Item name="name" label="Title" rules={[{ required: true, message: 'Please enter the name' }]}>
+                    <Input placeholder="Enter library item title" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item name="album" label="Album or Collection">
+                    <Select placeholder="Select album type" allowClear options={albumOptions} />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Form.Item name="description" label="Description">
+                <Input.TextArea placeholder="Add a short description" rows={3} />
+              </Form.Item>
+            </Card>
 
-        <Form.Item name="description" label="Description">
-          <Input.TextArea placeholder="Enter description" rows={3} />
-        </Form.Item>
+            <Card
+              size="small"
+              title={
+                <Space>
+                  <IconMusic className="h-4 w-4 text-blue-500" />
+                  <span>Media links</span>
+                </Space>
+              }
+              bodyStyle={{ padding: 16 }}
+              style={{ background: '#fff' }}>
+              <Row gutter={16}>
+                <Col xs={24} md={12}>
+                  <Form.Item name="audio_url" label="Audio URL">
+                    <Input placeholder="https://example.com/audio.mp3" prefix={<IconMusic className="text-blue-500" size={16} />} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item name="pdf_url" label="PDF URL">
+                    <Input placeholder="https://example.com/document.pdf" prefix={<IconFileText className="text-red-500" size={16} />} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item name="youtube_url" label="YouTube URL">
+                    <Input placeholder="https://youtube.com/watch?v=..." prefix={<IconVideo className="text-red-600" size={16} />} />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Card>
 
-        <Divider>Media URLs</Divider>
+            <Card
+              size="small"
+              title={
+                <Space>
+                  <IconTag className="h-4 w-4 text-green-500" />
+                  <span>Tags & categories</span>
+                </Space>
+              }
+              bodyStyle={{ padding: 16 }}>
+              <Row gutter={16}>
+                <Col xs={24} md={12}>
+                  <Form.Item name="tags" label="Tags" extra="Use chips to keep similar entries grouped.">
+                    <ChipInput placeholder="Type tag and press Enter" color="blue" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={12}>
+                  <Form.Item name="categories" label="Categories" extra="Describe the hierarchy or theme.">
+                    <ChipInput placeholder="Type category and press Enter" color="purple" />
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Form.Item
-            name="audio_url"
-            label={
-              <Space>
-                <IconMusic className="h-4 w-4 text-blue-500" />
-                Audio URL
-              </Space>
-            }>
-            <Input placeholder="https://example.com/audio.mp3" />
-          </Form.Item>
-
-          <Form.Item
-            name="pdf_url"
-            label={
-              <Space>
-                <IconFileText className="h-4 w-4 text-red-500" />
-                PDF URL
-              </Space>
-            }>
-            <Input placeholder="https://example.com/document.pdf" />
-          </Form.Item>
-
-          <Form.Item
-            name="youtube_url"
-            label={
-              <Space>
-                <IconVideo className="h-4 w-4 text-red-600" />
-                YouTube URL
-              </Space>
-            }>
-            <Input placeholder="https://youtube.com/watch?v=..." />
-          </Form.Item>
-        </div>
-
-        <Divider>Tags & Categories</Divider>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-          <Form.Item
-            name="tags"
-            label={
-              <Space>
-                <IconTag className="h-4 w-4 text-green-500" />
-                Tags
-              </Space>
-            }
-            help="Add tags to categorize your library item">
-            <Select
-              mode="tags"
-              placeholder="Type and press Enter to add tags"
-              style={{ width: '100%' }}
-              tagRender={props => {
-                const { label, closable, onClose } = props as { label: string; closable: boolean; onClose: () => void }
-                return (
-                  <Tag color="blue" closable={closable} onClose={onClose} style={{ marginRight: 3 }}>
-                    {label}
-                  </Tag>
-                )
-              }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="categories"
-            label={
-              <Space>
-                <IconFolder className="h-4 w-4 text-purple-500" />
-                Categories
-              </Space>
-            }
-            help="Add categories to organize your library item">
-            <Select
-              mode="tags"
-              placeholder="Type and press Enter to add categories"
-              style={{ width: '100%' }}
-              tokenSeparators={[',']}
-              tagRender={props => {
-                const { label, closable, onClose } = props as { label: string; closable: boolean; onClose: () => void }
-                return (
-                  <Tag color="purple" closable={closable} onClose={onClose} style={{ marginRight: 3 }}>
-                    {label}
-                  </Tag>
-                )
-              }}
-            />
-          </Form.Item>
-        </div>
-      </Form>
+            <Divider style={{ margin: '16px 0 8px' }} />
+            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+              <Button onClick={onClose} disabled={loading}>
+                Cancel
+              </Button>
+              <Button type="primary" loading={loading} onClick={() => form.submit()}>
+                {library ? 'Update library' : 'Create library'}
+              </Button>
+            </Space>
+          </Form>
+        </Space>
+      </div>
     </Modal>
+  )
+}
+
+interface ChipInputProps {
+  value?: string[]
+  onChange?: (value: string[]) => void
+  placeholder?: string
+  color?: string
+}
+
+const ChipInput = ({ value = [], onChange, placeholder, color = 'blue' }: ChipInputProps) => {
+  const [inputValue, setInputValue] = useState('')
+
+  const addValue = () => {
+    const next = inputValue.trim()
+    if (!next || value.includes(next)) {
+      setInputValue('')
+      return
+    }
+    onChange?.([...value, next])
+    setInputValue('')
+  }
+
+  const removeValue = (chip: string) => {
+    onChange?.(value.filter(item => item !== chip))
+  }
+
+  return (
+    <Space direction="vertical" size={8} style={{ width: '100%' }}>
+      <Space size={[8, 8]} wrap>
+        {value.map(chip => (
+          <Tag key={chip} color={color} closable onClose={() => removeValue(chip)}>
+            {chip}
+          </Tag>
+        ))}
+      </Space>
+      <Input
+        size="small"
+        value={inputValue}
+        placeholder={placeholder}
+        onChange={e => setInputValue(e.target.value)}
+        onPressEnter={addValue}
+        onBlur={() => {
+          if (!inputValue.trim()) return
+          addValue()
+        }}
+      />
+    </Space>
   )
 }
 

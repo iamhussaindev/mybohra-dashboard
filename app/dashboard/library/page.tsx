@@ -66,7 +66,7 @@ function LibraryManagement() {
         </Button>,
       ]}>
       {/* Library List */}
-      <LibraryList key={refreshKey} searchQuery={searchQuery} onDeleteLibrary={handleDeleteLibrary} onViewMiqaats={handleViewMiqaats} />
+      <LibraryList key={refreshKey} searchQuery={searchQuery} onDeleteLibrary={handleDeleteLibrary} onViewMiqaats={handleViewMiqaats} onCreateLibrary={handleCreateLibrary} />
 
       {/* Library Form Modal */}
       <LibraryForm open={showForm} onClose={handleFormClose} onSuccess={handleFormSuccess} library={editingLibrary} />

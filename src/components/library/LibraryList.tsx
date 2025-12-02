@@ -2,24 +2,34 @@ import Table from '@components/ui/atoms/Table'
 import { useDebounce } from '@hooks/useDebounce'
 import { LibraryService } from '@lib/api/library'
 import { StorageService } from '@lib/api/storage'
-import { IconBrandYoutube, IconTrash, IconUpload } from '@tabler/icons-react'
+import { IconBrandYoutube, IconCloudUpload, IconFileText, IconFilter, IconMoodSmile, IconPlayerPause, IconPlayerPlay, IconPlus, IconRefresh, IconTrash, IconUpload } from '@tabler/icons-react'
 import { AlbumEnum, Library, LibraryFilters } from '@type/library'
 import { Button, Input, message, Popconfirm, Select } from 'antd'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+
+const TAG_PILL_THEMES = [
+  { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700', dot: 'bg-indigo-500' },
+  { bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', dot: 'bg-violet-500' },
+  { bg: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-700', dot: 'bg-sky-500' },
+  { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', dot: 'bg-emerald-500' },
+  { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', dot: 'bg-amber-500' },
+  { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700', dot: 'bg-rose-500' },
+]
 
 interface LibraryListProps {
   onDeleteLibrary?: (id: number) => void
   onViewMiqaats?: (library: Library) => void
+  onCreateLibrary?: () => void
   searchQuery?: string
 }
 
-const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: LibraryListProps) => {
+const LibraryList = ({ onDeleteLibrary, onViewMiqaats, onCreateLibrary, searchQuery = '' }: LibraryListProps) => {
   const [libraries, setLibraries] = useState<Library[]>([])
   const [loading, setLoading] = useState(false)
   const [filters] = useState<LibraryFilters>({})
   const [pagination, setPagination] = useState({
     current: 1,
-    pageSize: 20,
+    pageSize: 500,
     total: 0,
   })
   const [hasNextPage, setHasNextPage] = useState(true)
@@ -28,6 +38,119 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
   const [selectedItem, setSelectedItem] = useState<Library | null>(null)
   const [sidebarVisible, setSidebarVisible] = useState(false)
   const [editingItem, setEditingItem] = useState<Partial<Library>>({})
+  const [activeTagFilters, setActiveTagFilters] = useState<string[]>([])
+  const [activeCategoryFilters, setActiveCategoryFilters] = useState<string[]>([])
+
+  // Helper function to parse tags/categories
+  const parseTagsOrCategories = (value: string[] | string | undefined): string[] => {
+    if (!value) return []
+    if (Array.isArray(value)) return value.filter(Boolean)
+    if (typeof value === 'string') {
+      return value
+        .split(',')
+        .map((item: string) => item.trim())
+        .filter(Boolean)
+    }
+    return []
+  }
+
+  // Helper function to get unique tags from current libraries
+  const getUniqueTags = () => {
+    const allTags = libraries.flatMap(lib => parseTagsOrCategories(lib.tags))
+    return Array.from(new Set(allTags)).sort()
+  }
+
+  // Helper function to get unique categories from current libraries
+  const getUniqueCategories = () => {
+    const allCategories = libraries.flatMap(lib => parseTagsOrCategories(lib.categories))
+    return Array.from(new Set(allCategories)).sort()
+  }
+
+  const filteredLibraries = useMemo(() => {
+    if (!activeTagFilters.length && !activeCategoryFilters.length) return libraries
+
+    return libraries.filter(lib => {
+      const tags = parseTagsOrCategories(lib.tags)
+      const categories = parseTagsOrCategories(lib.categories)
+      const matchesTags = activeTagFilters.every(tag => tags.includes(tag))
+      const matchesCategories = activeCategoryFilters.every(category => categories.includes(category))
+      return matchesTags && matchesCategories
+    })
+  }, [libraries, activeTagFilters, activeCategoryFilters])
+
+  const renderTagPills = (items: string[], limit = 3, offset = 0) => {
+    if (!items.length) return <span className="text-xs text-gray-400">-</span>
+
+    const visible = items.slice(0, limit)
+    const extra = items.length - limit
+
+    return (
+      <div className="flex flex-wrap gap-1">
+        {visible.map((item, index) => {
+          const theme = TAG_PILL_THEMES[(index + offset) % TAG_PILL_THEMES.length]
+          return (
+            <span
+              key={`${item}-${index}`}
+              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${theme.bg} ${theme.border} ${theme.text}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${theme.dot}`} />
+              {item}
+            </span>
+          )
+        })}
+        {extra > 0 && (
+          <span className="inline-flex items-center rounded-full border border-dashed border-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">+{extra}</span>
+        )}
+      </div>
+    )
+  }
+
+  const renderFilterChip = (label: string, value: string, type: 'tag' | 'category', index: number) => {
+    const theme = TAG_PILL_THEMES[index % TAG_PILL_THEMES.length]
+    const isActive = type === 'tag' ? activeTagFilters.includes(value) : activeCategoryFilters.includes(value)
+    return (
+      <span
+        key={`${label}-${index}`}
+        onClick={() => toggleQuickFilter(type, value)}
+        className={`inline-flex cursor-pointer items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-semibold text-left transition hover:-translate-y-0.5 ${
+          isActive ? `${theme.bg} ${theme.border} ${theme.text} shadow-sm` : 'bg-white border-slate-200 text-slate-600'
+        }`}>
+        <span className={`h-1.5 w-1.5 rounded-full ${theme.dot}`} />
+        {label}
+        {isActive && <span className="text-xs text-slate-400">✕</span>}
+      </span>
+    )
+  }
+
+  const toggleQuickFilter = (type: 'tag' | 'category', value: string) => {
+    if (type === 'tag') {
+      setActiveTagFilters(prev => (prev.includes(value) ? prev.filter(tag => tag !== value) : [...prev, value]))
+    } else {
+      setActiveCategoryFilters(prev => (prev.includes(value) ? prev.filter(category => category !== value) : [...prev, value]))
+    }
+  }
+
+  const clearQuickFilters = () => {
+    setActiveTagFilters([])
+    setActiveCategoryFilters([])
+  }
+
+  const hasActiveQuickFilters = activeTagFilters.length > 0 || activeCategoryFilters.length > 0
+
+  const totalItems = pagination.total || libraries.length
+  const audioAvailable = useMemo(() => libraries.filter(library => Boolean(library.audio_url)).length, [libraries])
+  const pdfAvailable = useMemo(() => libraries.filter(library => Boolean(library.pdf_url)).length, [libraries])
+  const uniqueAlbums = useMemo(() => Array.from(new Set(libraries.map(library => library.album).filter(Boolean))), [libraries])
+  const highlightedTags = useMemo(() => getUniqueTags().slice(0, 6), [libraries])
+  const highlightedCategories = useMemo(() => getUniqueCategories().slice(0, 6), [libraries])
+  const quickStats = useMemo(
+    () => [
+      { label: 'Total Entries', value: totalItems, accent: 'from-indigo-500 to-violet-500' },
+      { label: 'Audio Ready', value: audioAvailable, accent: 'from-blue-500 to-cyan-500' },
+      { label: 'PDF Ready', value: pdfAvailable, accent: 'from-rose-500 to-orange-400' },
+      { label: 'Albums', value: uniqueAlbums.length, accent: 'from-emerald-500 to-lime-400' },
+    ],
+    [audioAvailable, pdfAvailable, totalItems, uniqueAlbums.length]
+  )
 
   // Debounce the search query by 500ms
   const debouncedSearchQuery = useDebounce(searchQuery, 500)
@@ -430,31 +553,6 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
     }
   }
 
-  // Helper function to parse tags/categories
-  const parseTagsOrCategories = (value: string[] | string | undefined): string[] => {
-    if (!value) return []
-    if (Array.isArray(value)) return value.filter(Boolean)
-    if (typeof value === 'string') {
-      return value
-        .split(',')
-        .map((item: string) => item.trim())
-        .filter(Boolean)
-    }
-    return []
-  }
-
-  // Helper function to get unique tags from current libraries
-  const getUniqueTags = () => {
-    const allTags = libraries.flatMap(lib => parseTagsOrCategories(lib.tags))
-    return Array.from(new Set(allTags)).sort()
-  }
-
-  // Helper function to get unique categories from current libraries
-  const getUniqueCategories = () => {
-    const allCategories = libraries.flatMap(lib => parseTagsOrCategories(lib.categories))
-    return Array.from(new Set(allCategories)).sort()
-  }
-
   const columns = [
     {
       title: 'Name',
@@ -471,7 +569,7 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
             onDragLeave={e => handleDragLeave(record.id, e)}
             onDragOver={handleDragOver}
             onDrop={e => handleDrop(record, e)}>
-            <div className="font-medium text-gray-900 text-sm">{text}</div>
+            <div className="font-regular text-gray-900 text-sm">{text}</div>
             {dragState.isDragOver && <div className="text-xs text-blue-600 mt-1">Drop files here</div>}
           </div>
         )
@@ -489,7 +587,7 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
     {
       title: 'Audio',
       key: 'audio',
-      width: 120,
+      width: 150,
       render: (record: Library) => {
         const audioState = audioStates[record.id]
         const isPlaying = audioState?.playing || false
@@ -500,16 +598,23 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
         }
 
         return (
-          <div className="text-xs text-gray-700">
-            <span
-              className="cursor-pointer hover:text-blue-600"
-              onClick={e => {
-                e.stopPropagation()
-                toggleAudio(record)
-              }}>
-              {isPlaying ? '⏸️' : '▶️'} {hasError ? 'Error' : isPlaying ? 'Playing' : 'Play'}
+          <button
+            className={`group flex w-[120px] items-center shadow-box gap-2 rounded-full border px-1 py-1 text-xs font-semibold transition ${
+              hasError
+                ? 'border-rose-200 bg-rose-50 text-rose-600'
+                : isPlaying
+                ? 'border-indigo-200 bg-indigo-50 text-indigo-600'
+                : 'border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:text-indigo-600'
+            }`}
+            onClick={e => {
+              e.stopPropagation()
+              toggleAudio(record)
+            }}>
+            <span className={`flex h-6 w-6 items-center justify-center rounded-full text-white ${hasError ? 'bg-rose-500' : isPlaying ? 'bg-indigo-500' : 'bg-slate-400 group-hover:bg-indigo-500'}`}>
+              {hasError ? '!' : isPlaying ? <IconPlayerPause className="h-3 w-3" stroke={2} /> : <IconPlayerPlay className="h-3 w-3" stroke={2} />}
             </span>
-          </div>
+            <span>{hasError ? 'Error' : isPlaying ? 'Playing' : 'Play audio'}</span>
+          </button>
         )
       },
       filters: [
@@ -523,18 +628,24 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
     {
       title: 'PDF',
       key: 'pdf',
-      width: 120,
+      width: 150,
       render: (record: Library) => {
         if (!record.pdf_url) {
           return <div className="text-xs text-gray-500">No PDF</div>
         }
 
         return (
-          <div className="text-xs text-gray-700">
-            <a href={record.pdf_url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600" onClick={e => e.stopPropagation()}>
-              Open PDF
-            </a>
-          </div>
+          <a
+            href={record.pdf_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className="w-[120px] group flex items-center shadow-box gap-2 rounded-full border border-emerald-200 bg-white px-1 py-1 text-xs font-semibold text-emerald-600 transition hover:border-emerald-300 hover:bg-emerald-50">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white">
+              <IconFileText className="h-3.5 w-3.5" stroke={2} />
+            </span>
+            <span>Open PDF</span>
+          </a>
         )
       },
       filters: [
@@ -561,7 +672,7 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
               .filter(Boolean)
           : []
 
-        return <div className="text-xs text-gray-700">{tagArray?.length > 0 ? tagArray.slice(0, 3).join(', ') + (tagArray.length > 3 ? ` +${tagArray.length - 3}` : '') : '-'}</div>
+        return renderTagPills(tagArray)
       },
       filters: getUniqueTags().map(tag => ({ text: tag, value: tag })),
       onFilter: (value: string, record: Library) => {
@@ -584,7 +695,7 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
               .filter(Boolean)
           : []
 
-        return <div className="text-xs text-gray-700">{categoryArray?.length > 0 ? categoryArray.slice(0, 3).join(', ') + (categoryArray.length > 3 ? ` +${categoryArray.length - 3}` : '') : '-'}</div>
+        return renderTagPills(categoryArray, 3, 2)
       },
       filters: getUniqueCategories().map(category => ({ text: category, value: category })),
       onFilter: (value: string, record: Library) => {
@@ -595,11 +706,11 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
     {
       title: 'Actions',
       key: 'actions',
-      width: 150,
+      width: 140,
       render: (record: Library) => (
-        <div className="text-xs text-gray-700">
+        <div className="flex flex-wrap gap-2 text-xs text-gray-700">
           <Button
-            className="cursor-pointer hover:text-blue-600"
+            size="small"
             onClick={e => {
               e.stopPropagation()
               onViewMiqaats?.(record)
@@ -612,50 +723,113 @@ const LibraryList = ({ onDeleteLibrary, onViewMiqaats, searchQuery = '' }: Libra
   ]
 
   return (
-    <div className="flex h-screen ">
-      {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300 ${sidebarVisible ? 'w-[calc(100%-400px)]' : 'w-full'}`}>
-        <div className="space-y-6 h-full overflow-auto">
-          <div className="bg-white/80 overflow-hidden">
-            <Table
-              columns={columns}
-              data={libraries}
-              rowKey="id"
-              sticky={true}
-              $clickable={true}
-              onRow={record => ({
-                onClick: () => handleItemSelect(record),
-                style: {
-                  cursor: 'pointer',
-                  backgroundColor: record.id === selectedItem?.id ? 'rgb(255, 199, 199)' : 'transparent',
-                },
-              })}
-              loading={loading}
-              refetch={refetch}
-              pagination={{
-                current: pagination.current,
-                pageSize: pagination.pageSize,
-                total: pagination.total,
-                hasNextPage: hasNextPage,
-              }}
-            />
+    <div className="h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+      <div className="flex h-full">
+        {/* Main Content */}
+        <div className={`flex-1 transition-all duration-300 ${sidebarVisible ? 'lg:w-[calc(100%-420px)]' : 'w-full'}`}>
+          <div className="h-full overflow-auto px-6 py-8 space-y-6">
+            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {quickStats.map(stat => (
+                <div key={stat.label} className="rounded-2xl bg-white p-5 shadow-lg shadow-slate-200/60 border border-slate-100">
+                  <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${stat.accent} text-white flex items-center justify-center text-sm font-semibold`}>{stat.value}</div>
+                  <p className="mt-3 text-sm font-medium text-slate-600">{stat.label}</p>
+                  <p className="text-xs text-slate-400">Updated live from the library feed</p>
+                </div>
+              ))}
+            </section>
+
+            {(highlightedTags.length > 0 || highlightedCategories.length > 0) && (
+              <section className="rounded-3xl border border-slate-100 bg-white/80 p-6 shadow-lg shadow-slate-100">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                  <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
+                    <IconFilter className="h-4 w-4 text-indigo-500" />
+                    Quick filters
+                    {hasActiveQuickFilters && <span className="text-xs text-indigo-500 font-semibold">({activeTagFilters.length + activeCategoryFilters.length} active)</span>}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {hasActiveQuickFilters && (
+                      <Button type="text" size="small" onClick={clearQuickFilters} className="text-indigo-600">
+                        Clear filters
+                      </Button>
+                    )}
+                    {onCreateLibrary && (
+                      <Button type="primary" icon={<IconPlus className="h-4 w-4" />} size="small" onClick={onCreateLibrary}>
+                        New Item
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {highlightedTags.map((tag, index) => renderFilterChip(`#${tag}`, tag, 'tag', index))}
+                  {highlightedCategories.map((category, index) => renderFilterChip(category, category, 'category', index + highlightedTags.length))}
+                  {highlightedTags.length === 0 && highlightedCategories.length === 0 && (
+                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                      <IconMoodSmile className="h-4 w-4" />
+                      Tags will appear once items include metadata.
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            <section className="rounded-3xl bg-white/95 border border-slate-100 shadow-2xl shadow-slate-200/70 overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between border-b border-slate-100 px-6 py-4 gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">Library overview</p>
+                  <p className="text-xs text-slate-500">Tap any row to open the detail designer</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button icon={<IconRefresh className="h-4 w-4" />} onClick={() => refetch(false, true)} size="small">
+                    Sync
+                  </Button>
+                  <Button icon={<IconCloudUpload className="h-4 w-4" />} size="small" onClick={() => message.info('Select an item to manage uploads in the sidebar.')}>
+                    Bulk Upload
+                  </Button>
+                </div>
+              </div>
+              <div className="bg-white">
+                <Table
+                  columns={columns}
+                  showFooter
+                  data={filteredLibraries}
+                  rowKey="id"
+                  sticky={true}
+                  $clickable={true}
+                  onRow={record => ({
+                    onClick: () => handleItemSelect(record),
+                    style: {
+                      cursor: 'pointer',
+                      backgroundColor: record.id === selectedItem?.id ? 'rgba(99,102,241,0.08)' : 'transparent',
+                    },
+                  })}
+                  loading={loading}
+                  refetch={refetch}
+                  pagination={{
+                    current: pagination.current,
+                    pageSize: pagination.pageSize,
+                    total: pagination.total,
+                    hasNextPage: hasNextPage,
+                  }}
+                />
+              </div>
+            </section>
           </div>
         </div>
-      </div>
 
-      {/* Right Sidebar */}
-      {sidebarVisible && selectedItem && (
-        <div className="w-[400px] shadow-blue-500/10 overflow-auto border-l border-gray-200">
-          <ItemSidebar
-            item={selectedItem}
-            editingItem={editingItem}
-            setEditingItem={setEditingItem}
-            onClose={handleSidebarClose}
-            onSave={handleSaveChanges}
-            onDelete={() => handleDelete(selectedItem.id)}
-          />
-        </div>
-      )}
+        {/* Right Sidebar */}
+        {sidebarVisible && selectedItem && (
+          <div className="w-full max-w-[420px] shadow-[0_20px_35px_-25px_rgba(79,70,229,0.7)] overflow-auto border-l border-slate-100 bg-white">
+            <ItemSidebar
+              item={selectedItem}
+              editingItem={editingItem}
+              setEditingItem={setEditingItem}
+              onClose={handleSidebarClose}
+              onSave={handleSaveChanges}
+              onDelete={() => handleDelete(selectedItem.id)}
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -671,6 +845,12 @@ interface ItemSidebarProps {
 }
 
 const ItemSidebar = ({ item, editingItem, setEditingItem, onClose, onSave, onDelete }: ItemSidebarProps) => {
+  const baseId = `library-${item.id}`
+  const audioUploadId = `${baseId}-audio-replace`
+  const audioNewUploadId = `${baseId}-audio-new`
+  const pdfUploadId = `${baseId}-pdf-replace`
+  const pdfNewUploadId = `${baseId}-pdf-new`
+
   const handleFileUpload = async (file: File, type: 'audio' | 'pdf') => {
     try {
       const result = await StorageService.uploadFile(file, type, item.name)
@@ -717,233 +897,217 @@ const ItemSidebar = ({ item, editingItem, setEditingItem, onClose, onSave, onDel
   }
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="flex h-full flex-col bg-white">
       {/* Header */}
-      <div className="px-3 py-4 h-[55px] bg-gray-50 border-b border-gray-200">
-        <div className="flex items-center justify-between">
+      <div className="relative overflow-hidden border-b border-slate-100 bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-500 px-5 py-5 text-white">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="font-semibold text-gray-900 text-sm">Edit Item</h3>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-white/70">Now editing</p>
+            <h3 className="mt-1 text-lg font-semibold leading-snug">{item.name}</h3>
+            <p className="text-xs text-white/80">{item.album || 'Uncategorized album'}</p>
           </div>
-          <button onClick={onClose} className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors">
-            <span className="text-gray-500 text-sm">✕</span>
+          <button onClick={onClose} className="h-8 w-8 rounded-full border border-white/40 text-white hover:bg-white/20 transition">
+            ✕
           </button>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-white/80">
+          <span className="rounded-full bg-white/20 px-3 py-1">{editingItem.audio_url ? 'Audio attached' : 'Add audio'}</span>
+          <span className="rounded-full bg-white/20 px-3 py-1">{editingItem.pdf_url ? 'PDF attached' : 'Add PDF'}</span>
+          <span className="rounded-full bg-white/20 px-3 py-1">{editingItem.youtube_url ? 'YouTube linked' : 'Add video'}</span>
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 p-3 space-y-4 overflow-auto">
-        {/* 1. Basic Info */}
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
-              <Input value={editingItem.name || ''} onChange={e => setEditingItem({ ...editingItem, name: e.target.value })} placeholder="Enter title" size="small" className="text-sm" />
+      <div className="flex-1 space-y-5 overflow-auto bg-slate-50 px-5 py-6">
+        {/* Basic Info */}
+        <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+            Details
+          </div>
+          <div className="mt-4 space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-slate-500">Title</label>
+              <Input value={editingItem.name || ''} onChange={e => setEditingItem({ ...editingItem, name: e.target.value })} placeholder="Enter title" size="middle" />
             </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-slate-500">Description</label>
               <Input.TextArea
                 value={editingItem.description || ''}
                 onChange={e => setEditingItem({ ...editingItem, description: e.target.value })}
-                placeholder="Enter description"
-                rows={2}
-                size="small"
-                className="text-sm"
+                placeholder="Short summary for this entry"
+                rows={3}
               />
             </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Album</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-slate-500">Album</label>
               <Select
                 value={editingItem.album}
                 onChange={value => setEditingItem({ ...editingItem, album: value })}
                 placeholder="Select album"
-                size="small"
-                className="w-full text-sm"
+                className="w-full"
                 options={Object.values(AlbumEnum).map(album => ({ label: album, value: album }))}
               />
             </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Tags</label>
-              <Input
-                value={Array.isArray(editingItem.tags) ? editingItem.tags.join(', ') : editingItem.tags || ''}
-                onChange={e =>
-                  setEditingItem({
-                    ...editingItem,
-                    tags: e.target.value
-                      .split(',')
-                      .map(tag => tag.trim())
-                      .filter(Boolean),
-                  })
+            <div className="space-y-1.5 flex flex-col w-full max-w-full">
+              <label className="text-xs font-medium text-slate-500">Tags</label>
+              <Select
+                mode="tags"
+                value={
+                  Array.isArray(editingItem.tags)
+                    ? editingItem.tags
+                    : editingItem.tags
+                    ? String(editingItem.tags)
+                        .split(',')
+                        .map(tag => tag.trim())
+                        .filter(Boolean)
+                    : []
                 }
-                placeholder="tag1, tag2, tag3"
-                size="small"
-                className="text-sm"
+                onChange={value => {
+                  setEditingItem({ ...editingItem, tags: value })
+                }}
               />
             </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Categories</label>
-              <Input
-                value={Array.isArray(editingItem.categories) ? editingItem.categories.join(', ') : editingItem.categories || ''}
-                onChange={e =>
-                  setEditingItem({
-                    ...editingItem,
-                    categories: e.target.value
-                      .split(',')
-                      .map(cat => cat.trim())
-                      .filter(Boolean),
-                  })
+            <div className="space-y-1.5 w-full max-w-full flex flex-col">
+              <label className="text-xs font-medium text-slate-500">Categories</label>
+              <Select
+                mode="tags"
+                allowClear
+                onClear={() => setEditingItem({ ...editingItem, categories: [] })}
+                value={
+                  Array.isArray(editingItem.categories)
+                    ? editingItem.categories
+                    : editingItem.categories
+                    ? String(editingItem.categories)
+                        .split(',')
+                        .map(cat => cat.trim())
+                        .filter(Boolean)
+                    : []
                 }
-                placeholder="category1, category2"
-                size="small"
-                className="text-sm"
+                onChange={value => {
+                  setEditingItem({ ...editingItem, categories: value })
+                }}
+                className="w-full"
               />
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* 2. Media Files */}
-        <div className="space-y-3">
-          <div className="flex items-center space-x-2 pb-2 border-b border-gray-100">
-            <IconUpload className="w-4 h-4 text-green-500" />
-            <h4 className="font-medium text-gray-900 text-sm">Media Files</h4>
+        {/* Media */}
+        <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm space-y-4">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <IconUpload className="h-4 w-4 text-indigo-500" />
+            Media vault
           </div>
 
           {/* Audio */}
-          <div className="space-y-2">
-            <label className="block text-xs font-medium text-gray-600">Audio File</label>
-            {editingItem.audio_url ? (
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 p-2 bg-green-50 rounded-lg border border-green-200">
-                  <span className="text-green-600">🎵</span>
-                  <span className="text-xs text-green-700 flex-1 truncate">Audio file present</span>
-                </div>
-                <div className="flex space-x-1">
-                  <input
-                    type="file"
-                    accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg"
-                    onChange={e => {
-                      const file = e.target.files?.[0]
-                      if (file) handleFileUpload(file, 'audio')
-                      e.target.value = ''
-                    }}
-                    className="hidden"
-                    id="audio-upload"
-                  />
-                  <Button type="primary" size="small" onClick={() => document.getElementById('audio-upload')?.click()} className="flex-1 text-xs h-6 bg-primary hover:bg-primary-600">
-                    Replace
+          <div className="rounded-xl border border-indigo-100 bg-indigo-50/70 p-4">
+            <div className="flex items-center justify-between text-xs font-semibold text-indigo-700">
+              <span>Audio file</span>
+              {editingItem.audio_url ? <span className="text-emerald-600">Attached</span> : <span className="text-indigo-400">Awaiting upload</span>}
+            </div>
+            <p className="mt-1 text-xs text-indigo-500/80">Drop an .mp3, .wav, or .m4a to instantly update.</p>
+            <div className="mt-3 flex gap-2">
+              <input
+                type="file"
+                accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg"
+                onChange={e => {
+                  const file = e.target.files?.[0]
+                  if (file) handleFileUpload(file, 'audio')
+                  e.target.value = ''
+                }}
+                className="hidden"
+                id={audioUploadId}
+              />
+              <input
+                type="file"
+                accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg"
+                onChange={e => {
+                  const file = e.target.files?.[0]
+                  if (file) handleFileUpload(file, 'audio')
+                  e.target.value = ''
+                }}
+                className="hidden"
+                id={audioNewUploadId}
+              />
+              <Button type="primary" size="small" className="bg-indigo-600 text-white border-none hover:bg-indigo-500" onClick={() => document.getElementById(audioUploadId)?.click()}>
+                {editingItem.audio_url ? 'Replace' : 'Upload audio'}
+              </Button>
+              {editingItem.audio_url && (
+                <>
+                  <Button size="small" onClick={() => document.getElementById(audioNewUploadId)?.click()}>
+                    Add variant
                   </Button>
-                  <Button type="text" size="small" danger onClick={() => handleDeleteFile('audio')} className="text-xs h-6">
-                    Delete
+                  <Button type="text" size="small" danger onClick={() => handleDeleteFile('audio')}>
+                    Remove
                   </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                  <span className="text-xs text-gray-500">No audio file</span>
-                </div>
-                <input
-                  type="file"
-                  accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg"
-                  onChange={e => {
-                    const file = e.target.files?.[0]
-                    if (file) handleFileUpload(file, 'audio')
-                    e.target.value = ''
-                  }}
-                  className="hidden"
-                  id="audio-upload-new"
-                />
-                <Button type="primary" size="small" onClick={() => document.getElementById('audio-upload-new')?.click()} className="w-full text-xs h-6 bg-primary hover:bg-primary-600">
-                  Upload Audio
-                </Button>
-              </div>
-            )}
+                </>
+              )}
+            </div>
           </div>
 
           {/* PDF */}
-          <div className="space-y-2">
-            <label className="block text-xs font-medium text-gray-600">PDF File</label>
-            {editingItem.pdf_url ? (
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 p-2 bg-red-50 rounded-lg border border-red-200">
-                  <span className="text-red-600">📄</span>
-                  <span className="text-xs text-red-700 flex-1 truncate">PDF file present</span>
-                </div>
-                <div className="flex space-x-1">
-                  <input
-                    type="file"
-                    accept=".pdf,application/pdf"
-                    onChange={e => {
-                      const file = e.target.files?.[0]
-                      if (file) handleFileUpload(file, 'pdf')
-                      e.target.value = ''
-                    }}
-                    className="hidden"
-                    id="pdf-upload"
-                  />
-                  <Button type="primary" size="small" onClick={() => document.getElementById('pdf-upload')?.click()} className="flex-1 text-xs h-6 bg-primary hover:bg-primary-600">
-                    Replace
-                  </Button>
-                  <Button type="text" size="small" danger onClick={() => handleDeleteFile('pdf')} className="text-xs h-6">
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="p-3 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                  <span className="text-xs text-gray-500">No PDF file</span>
-                </div>
-                <input
-                  type="file"
-                  accept=".pdf,application/pdf"
-                  onChange={e => {
-                    const file = e.target.files?.[0]
-                    if (file) handleFileUpload(file, 'pdf')
-                    e.target.value = ''
-                  }}
-                  className="hidden"
-                  id="pdf-upload-new"
-                />
-                <Button type="primary" size="small" onClick={() => document.getElementById('pdf-upload-new')?.click()} className="w-full text-xs h-6 bg-primary hover:bg-primary-600">
-                  Upload PDF
+          <div className="rounded-xl border border-rose-100 bg-rose-50/70 p-4">
+            <div className="flex items-center justify-between text-xs font-semibold text-rose-700">
+              <span>PDF document</span>
+              {editingItem.pdf_url ? <span className="text-emerald-600">Attached</span> : <span className="text-rose-400">Awaiting upload</span>}
+            </div>
+            <p className="mt-1 text-xs text-rose-500/80">Upload annotated PDF references for this item.</p>
+            <div className="mt-3 flex gap-2">
+              <input
+                type="file"
+                accept=".pdf,application/pdf"
+                onChange={e => {
+                  const file = e.target.files?.[0]
+                  if (file) handleFileUpload(file, 'pdf')
+                  e.target.value = ''
+                }}
+                className="hidden"
+                id={pdfUploadId}
+              />
+              <input
+                type="file"
+                accept=".pdf,application/pdf"
+                onChange={e => {
+                  const file = e.target.files?.[0]
+                  if (file) handleFileUpload(file, 'pdf')
+                  e.target.value = ''
+                }}
+                className="hidden"
+                id={pdfNewUploadId}
+              />
+              <Button type="primary" size="small" className="bg-rose-600 text-white border-none hover:bg-rose-500" onClick={() => document.getElementById(pdfUploadId)?.click()}>
+                {editingItem.pdf_url ? 'Replace' : 'Upload PDF'}
+              </Button>
+              {editingItem.pdf_url && (
+                <Button type="text" size="small" danger onClick={() => handleDeleteFile('pdf')}>
+                  Remove
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        </section>
 
-        {/* 3. YouTube */}
-        <div className="space-y-3">
-          <div className="flex items-center space-x-2 pb-2 border-b border-gray-100">
-            <IconBrandYoutube className="w-4 h-4 text-red-500" />
-            <h4 className="font-medium text-gray-900 text-sm">YouTube</h4>
+        {/* YouTube */}
+        <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+          <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <IconBrandYoutube className="h-4 w-4 text-red-500" />
+            Add a YouTube reference
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">YouTube URL</label>
-            <Input
-              value={editingItem.youtube_url || ''}
-              onChange={e => setEditingItem({ ...editingItem, youtube_url: e.target.value })}
-              placeholder="https://youtube.com/watch?v=..."
-              size="small"
-              className="text-sm"
-            />
-          </div>
-        </div>
+          <p className="mt-1 text-xs text-slate-500">Paste a full YouTube URL to keep learners within context.</p>
+          <Input className="mt-3" value={editingItem.youtube_url || ''} onChange={e => setEditingItem({ ...editingItem, youtube_url: e.target.value })} placeholder="https://youtube.com/watch?v=..." />
+        </section>
       </div>
 
-      {/* Footer Actions */}
-      <div className="p-3 border-t border-gray-100 bg-gray-50 space-y-2">
-        <Button type="primary" onClick={onSave} className="w-full bg-gradient-to-r from-primary to-primary-700 border-0 text-sm h-8 hover:shadow-md">
-          Save Changes
+      {/* Footer */}
+      <div className="space-y-2 border-t border-slate-100 bg-white px-5 py-4">
+        <Button type="primary" onClick={onSave} className="w-full border-none bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-500 text-white shadow-lg hover:shadow-xl">
+          Save changes
         </Button>
         <Popconfirm title="Delete this item?" description="This action cannot be undone." onConfirm={onDelete} okText="Delete" cancelText="Cancel">
-          <Button type="text" danger className="w-full text-sm h-8 hover:bg-red-50">
-            <IconTrash className="w-4 h-4 mr-2" />
-            Delete Item
+          <Button type="text" danger className="w-full">
+            <IconTrash className="mr-2 h-4 w-4" />
+            Delete item
           </Button>
         </Popconfirm>
       </div>
